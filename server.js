@@ -12,7 +12,7 @@ const usersDB = {};
 const rooms = {};
 
 io.on('connection', (socket) => {
-    // 🔐 1. ユーザー登録 / ログイン機能
+    // 🔐 ユーザー登録 / ログイン
     socket.on('registerUser', ({ username, password }) => {
         if (usersDB[username]) {
             return socket.emit('authResponse', { success: false, message: 'このユーザー名は既に使用されています。' });
@@ -36,20 +36,13 @@ io.on('connection', (socket) => {
         socket.emit('authResponse', { success: true, message: 'ログインに成功しました！', user });
     });
 
-    // 🎮 2. 部屋入室・作成
+    // 🎮 部屋入室・作成
     socket.on('joinRoom', ({ roomCode, user }) => {
         socket.join(roomCode);
         socket.roomCode = roomCode;
 
         if (!rooms[roomCode]) {
-            rooms[roomCode] = {
-                id: roomCode,
-                players: {},
-                phase: 'lobby',
-                timer: null,
-                nightActions: {},
-                votes: {}
-            };
+            rooms[roomCode] = createNewRoom(roomCode);
         }
 
         rooms[roomCode].players[socket.id] = {
@@ -73,14 +66,7 @@ io.on('connection', (socket) => {
         socket.roomCode = targetRoomCode;
 
         if (!rooms[targetRoomCode]) {
-            rooms[targetRoomCode] = {
-                id: targetRoomCode,
-                players: {},
-                phase: 'lobby',
-                timer: null,
-                nightActions: {},
-                votes: {}
-            };
+            rooms[targetRoomCode] = createNewRoom(targetRoomCode);
         }
 
         rooms[targetRoomCode].players[socket.id] = {
@@ -94,15 +80,16 @@ io.on('connection', (socket) => {
         io.to(targetRoomCode).emit('updateRoom', rooms[targetRoomCode]);
     });
 
-    // 🚀 3. ゲーム開始
+    // 🚀 ゲーム開始
     socket.on('startGame', () => {
         const roomCode = socket.roomCode;
         const room = rooms[roomCode];
         if (!room) return;
 
         const playerIds = Object.keys(room.players);
+        if (playerIds.length < 2) return; // プレイヤー数が少ない場合の防止
+
         const roles = ['人狼', '占い師', '騎士'];
-        
         playerIds.sort(() => Math.random() - 0.5);
 
         playerIds.forEach((id, index) => {
@@ -118,7 +105,7 @@ io.on('connection', (socket) => {
         startNightPhase(roomCode);
     });
 
-    // 🌙 4. 夜の行動
+    // 🌙 夜の行動
     socket.on('nightAction', ({ targetId }) => {
         const roomCode = socket.roomCode;
         const room = rooms[roomCode];
@@ -126,17 +113,19 @@ io.on('connection', (socket) => {
 
         room.nightActions[socket.id] = targetId;
 
+        // 生きている能力者の数を取得
         const activeRolePlayers = Object.values(room.players).filter(
             p => p.isAlive && ['人狼', '占い師', '騎士'].includes(p.role)
         );
 
+        // 生存している能力者全員が行動したら即夜を終了
         if (Object.keys(room.nightActions).length >= activeRolePlayers.length) {
             clearInterval(room.timer);
             processNightResults(roomCode);
         }
     });
 
-    // 🗳️ 5. 昼の投票行動
+    // 🗳️ 昼の投票行動
     socket.on('castVote', ({ targetId }) => {
         const roomCode = socket.roomCode;
         const room = rooms[roomCode];
@@ -144,6 +133,7 @@ io.on('connection', (socket) => {
 
         room.votes[socket.id] = targetId;
 
+        // 生存者全員が投票したら即昼を終了
         const alivePlayers = Object.values(room.players).filter(p => p.isAlive);
         if (Object.keys(room.votes).length >= alivePlayers.length) {
             clearInterval(room.timer);
@@ -151,7 +141,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 💬 6. チャット送信
+    // 💬 チャット送信
     socket.on('sendMessage', ({ text, type }) => {
         const roomCode = socket.roomCode;
         const room = rooms[roomCode];
@@ -182,15 +172,57 @@ io.on('connection', (socket) => {
     });
 });
 
-// 夜フェーズ開始
+function createNewRoom(roomCode) {
+    return {
+        id: roomCode,
+        players: {},
+        phase: 'lobby',
+        timer: null,
+        nightActions: {},
+        votes: {}
+    };
+}
+
+// 🏆 勝敗チェック関数
+function checkGameOver(roomCode) {
+    const room = rooms[roomCode];
+    if (!room) return true;
+
+    const alivePlayers = Object.values(room.players).filter(p => p.isAlive);
+    const aliveWolves = alivePlayers.filter(p => p.role === '人狼');
+    const aliveCitizens = alivePlayers.filter(p => p.role !== '人狼');
+
+    // 1. 人狼が全滅した場合 -> 市民陣営の勝利
+    if (aliveWolves.length === 0) {
+        clearInterval(room.timer);
+        room.phase = 'ended';
+        io.to(roomCode).emit('gameOver', { winner: '市民陣営', message: '人狼を全滅させました！市民陣営の勝利です！' });
+        return true;
+    }
+
+    // 2. 人狼の数が市民と同数以上になった場合 -> 人狼陣営の勝利
+    if (aliveWolves.length >= aliveCitizens.length) {
+        clearInterval(room.timer);
+        room.phase = 'ended';
+        io.to(roomCode).emit('gameOver', { winner: '人狼陣営', message: '人狼の数が市民と同数以上になりました。人狼陣営の勝利です！' });
+        return true;
+    }
+
+    return false;
+}
+
+// 🌙 夜フェーズ開始
 function startNightPhase(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
+
+    if (checkGameOver(roomCode)) return;
 
     room.phase = 'night';
     room.nightActions = {};
     let timeLeft = 30;
 
+    io.to(roomCode).emit('startNight', { room });
     io.to(roomCode).emit('timerUpdate', { timeLeft });
 
     clearInterval(room.timer);
@@ -205,7 +237,7 @@ function startNightPhase(roomCode) {
     }, 1000);
 }
 
-// 朝の集計＆昼フェーズ（タイマー起動）
+// 朝の集計＆昼フェーズ開始
 function processNightResults(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
@@ -230,9 +262,12 @@ function processNightResults(roomCode) {
         }
     }
 
+    // 犠牲者判定後の勝敗チェック
+    if (checkGameOver(roomCode)) return;
+
     io.to(roomCode).emit('startDay', { room, killedIds });
 
-    // ☀️ 昼タイマーのスタート (60秒間)
+    // ☀️ 昼タイマーのスタート (60秒)
     let timeLeft = 60;
     io.to(roomCode).emit('timerUpdate', { timeLeft });
 
@@ -248,7 +283,7 @@ function processNightResults(roomCode) {
     }, 1000);
 }
 
-// 昼の集計（最多票プレイヤーの追放）
+// 昼の集計（投票結果の反映）
 function processDayResults(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
@@ -272,11 +307,14 @@ function processDayResults(roomCode) {
         room.players[executedId].isAlive = false;
     }
 
-    // 次の夜フェーズへ移行
+    // 処刑後の勝敗チェック
+    if (checkGameOver(roomCode)) return;
+
+    // ゲームが継続する場合は次の夜フェーズへ
     startNightPhase(roomCode);
 }
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server executing on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
