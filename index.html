@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ONLINE JINRO - Ultimate Edition</title>
+    <title>ONLINE JINRO - High Quality Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -123,37 +123,10 @@
         .active { display: block; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* モーダル */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
-            display: none; justify-content: center; align-items: center; z-index: 999; padding: 16px;
-        }
-        .modal-overlay.open { display: flex; animation: fadeIn 0.3s ease-out; }
-        .modal-content {
-            background: #0f172a; border: 1px solid var(--accent-blue); border-radius: 20px;
-            width: 100%; max-width: 650px; max-height: 85vh; overflow-y: auto; padding: 24px;
-            box-shadow: var(--glow-blue); position: relative;
-        }
-        .modal-close {
-            position: absolute; top: 16px; right: 20px; background: none; border: none;
-            color: #fff; font-size: 1.5rem; cursor: pointer; width: auto; padding: 0; box-shadow: none;
-        }
-        
-        .rule-section { margin-bottom: 20px; }
-        .rule-section h3 {
-            color: var(--accent-blue); font-size: 1.1rem; border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 6px; margin-bottom: 10px;
-        }
-        .rule-step {
-            background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 10px 14px;
-            margin-bottom: 8px; font-size: 0.85rem; line-height: 1.5;
-        }
-        .role-card-rule {
-            background: rgba(30, 41, 59, 0.5); border-left: 3px solid var(--accent-gold);
-            border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 0.85rem;
-        }
-        .role-title { font-weight: bold; color: var(--accent-gold); display: flex; justify-content: space-between; }
+        /* 認証モーダル / コンテナ */
+        .auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .auth-tab-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); box-shadow: none; }
+        .auth-tab-btn.active-tab { background: var(--accent-blue); color: #000; font-weight: 900; }
 
         /* 3Dカード */
         .card-container {
@@ -194,6 +167,23 @@
             border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem;
         }
         .chat-msg { margin-bottom: 6px; padding: 4px 8px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; }
+
+        /* モーダル */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 999; padding: 16px;
+        }
+        .modal-overlay.open { display: flex; animation: fadeIn 0.3s ease-out; }
+        .modal-content {
+            background: #0f172a; border: 1px solid var(--accent-blue); border-radius: 20px;
+            width: 100%; max-width: 650px; max-height: 85vh; overflow-y: auto; padding: 24px;
+            box-shadow: var(--glow-blue); position: relative;
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 20px; background: none; border: none;
+            color: #fff; font-size: 1.5rem; cursor: pointer; width: auto; padding: 0; box-shadow: none;
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -202,17 +192,18 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="container">
+    <!-- ナビゲーションバー -->
     <div class="navbar">
         <div class="user-info">
-            <img id="my-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Player1" class="avatar-img" alt="Avatar">
+            <img id="my-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest" class="avatar-img" alt="Avatar">
             <div>
                 <div id="nav-username" style="font-weight: 700; font-size: 0.95rem;">ゲスト</div>
-                <span class="pt-badge">🪙 <span id="user-pt">500</span> PT</span>
+                <span class="pt-badge">🪙 <span id="user-pt">0</span> PT</span>
             </div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <button class="btn-purple" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openRuleModal()">📖 ルール</button>
-            <button class="btn-gold" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-shop')">🛒</button>
+            <button id="auth-btn" class="btn-secondary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openAuthModal()">🔑 ログイン</button>
+            <button class="btn-gold" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-shop')">🛒 ショップ</button>
         </div>
     </div>
 
@@ -223,20 +214,22 @@
             <!-- 1. ロビー画面 -->
             <div id="screen-lobby" class="screen active">
                 <h2>🎮 ロビー</h2>
-                <input type="text" id="player-name" placeholder="プレイヤー名" value="名無し">
                 <div style="margin: 18px 0;">
                     <button class="btn-purple" style="padding: 14px;" onclick="joinRandomRoom()">🎲 Quick Join (ランダム対戦)</button>
                     <p style="text-align: center; font-size: 0.8rem; color: var(--text-sub); margin: 12px 0;">またはプライベートIDで参加</p>
                     <input type="text" id="room-code" placeholder="部屋ID (例: 7777)">
                     <button onclick="joinRoom()">部屋を作成 / 入室</button>
-                    <button class="btn-secondary" style="margin-top: 10px;" onclick="openRuleModal()">📖 遊び方・役職図鑑を見る</button>
                 </div>
             </div>
 
             <!-- 2. ショップ画面 -->
             <div id="screen-shop" class="screen">
                 <h2>🛒 ポイントショップ</h2>
-                <button class="btn-gold" onclick="buyItem('crystal', 200)">🔮 水晶玉 (200 PT)</button>
+                <p style="text-align:center; color:var(--text-sub); margin-bottom:12px;">所持PTを使ってアバターや称号を獲得！</p>
+                <div class="player-card">
+                    <span>🔮 占い用水晶玉 (アバター装飾)</span>
+                    <button class="action-btn" onclick="buyItem('crystal', 200)">200 PTで購入</button>
+                </div>
                 <button class="btn-secondary" style="margin-top: 18px;" onclick="showScreen('screen-lobby')">ロビーに戻る</button>
             </div>
 
@@ -279,55 +272,104 @@
                     <button onclick="sendChat()" style="width: 75px; margin:0;">送信</button>
                 </div>
             </div>
-
-            <!-- 5. 結果画面 -->
-            <div id="screen-result" class="screen" style="text-align: center; padding: 20px 0;">
-                <h2 id="winner-text" style="color: var(--accent-red); font-size: 2rem; font-family: 'Orbitron';"></h2>
-                <button onclick="location.reload()" style="margin-top: 20px;">ロビーに戻る</button>
-            </div>
         </div>
 
         <div class="side-panel">
             <div class="card-box">
-                <h3 style="color: var(--accent-blue); font-size: 1rem; margin-bottom: 8px;">📝 考察メモ</h3>
-                <textarea id="personal-memo" style="height: 200px; resize: none;" placeholder="推理内容や発言ログを記入..."></textarea>
+                <h3 style="color: var(--accent-blue); font-size: 1rem; margin-bottom: 8px;">📝 推理メモ</h3>
+                <textarea id="personal-memo" style="height: 200px; resize: none;" placeholder="推理や行動のメモを残せます..."></textarea>
             </div>
         </div>
     </div>
 </div>
 
-<!-- モーダル -->
-<div id="rule-modal" class="modal-overlay">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeRuleModal()">✕</button>
-        <h2 style="color: var(--accent-blue); margin-bottom: 16px; font-family: 'Orbitron';">📜 RULE BOOK & ROLES</h2>
-        <div class="rule-section">
-            <h3>⏳ ゲームの進行手順</h3>
-            <div class="rule-step"><b>1. 役職確認</b>: 開始時にランダムで決定。</div>
-            <div class="rule-step"><b>2. 夜フェーズ</b>: 能力者が行動を選択。</div>
-            <div class="rule-step"><b>3. 昼フェーズ</b>: 全員で議論し投票で追放。</div>
+<!-- 🔑 ログイン / 新規登録モーダル -->
+<div id="auth-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <button class="modal-close" onclick="closeAuthModal()">✕</button>
+        <h2 style="color: var(--accent-blue); text-align: center; margin-bottom: 16px;">ACCOUNT</h2>
+        
+        <div class="auth-tabs">
+            <button id="tab-login" class="auth-tab-btn active-tab" onclick="switchAuthTab('login')">ログイン</button>
+            <button id="tab-register" class="auth-tab-btn" onclick="switchAuthTab('register')">新規登録</button>
         </div>
-        <button onclick="closeRuleModal()" style="margin-top: 10px;">閉じる</button>
+
+        <input type="text" id="auth-username" placeholder="ユーザー名">
+        <input type="password" id="auth-password" placeholder="パスワード">
+
+        <button id="auth-submit-btn" onclick="submitAuth()">ログイン</button>
     </div>
 </div>
 
 <script>
     const socket = io();
     let myId = null;
+    let currentUser = null;
+    let authMode = 'login';
     let myRole = '市民';
-    let userPT = 500;
 
     socket.on('connect', () => { myId = socket.id; });
 
-    // ⏱️ タイマー受信
+    // ✨ 動的背景パーティクル描画
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    for(let i=0; i<40; i++) {
+        particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, dX: (Math.random()-0.5)*0.5, dY: (Math.random()-0.5)*0.5 });
+    }
+    function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.3)';
+        particles.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+            p.x += p.dX; p.y += p.dY;
+            if(p.x<0 || p.x>canvas.width) p.dX *= -1;
+            if(p.y<0 || p.y>canvas.height) p.dY *= -1;
+        });
+        requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // ⏱️ タイマー受領
     socket.on('timerUpdate', ({ timeLeft }) => {
         const min = Math.floor(timeLeft / 60);
         const sec = timeLeft % 60;
         document.getElementById('timer-display').innerText = `⏱️ TIME: ${min}:${sec < 10 ? '0' : ''}${sec}`;
     });
 
-    function openRuleModal() { document.getElementById('rule-modal').classList.add('open'); }
-    function closeRuleModal() { document.getElementById('rule-modal').classList.remove('open'); }
+    // 🔑 ログイン管理
+    function openAuthModal() { document.getElementById('auth-modal').classList.add('open'); }
+    function closeAuthModal() { document.getElementById('auth-modal').classList.remove('open'); }
+    function switchAuthTab(mode) {
+        authMode = mode;
+        document.getElementById('tab-login').classList.toggle('active-tab', mode === 'login');
+        document.getElementById('tab-register').classList.toggle('active-tab', mode === 'register');
+        document.getElementById('auth-submit-btn').innerText = mode === 'login' ? 'ログイン' : 'アカウント作成';
+    }
+
+    function submitAuth() {
+        const username = document.getElementById('auth-username').value.trim();
+        const password = document.getElementById('auth-password').value.trim();
+        if (!username || !password) return alert('ユーザー名とパスワードを入力してください');
+
+        if (authMode === 'login') socket.emit('loginUser', { username, password });
+        else socket.emit('registerUser', { username, password });
+    }
+
+    socket.on('authResponse', ({ success, message, user }) => {
+        alert(message);
+        if (success) {
+            currentUser = user;
+            document.getElementById('nav-username').innerText = user.username;
+            document.getElementById('user-pt').innerText = user.pt;
+            document.getElementById('my-avatar').src = user.avatar;
+            document.getElementById('auth-btn').style.display = 'none';
+            closeAuthModal();
+        }
+    });
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -335,16 +377,14 @@
     }
 
     function joinRandomRoom() {
-        const name = document.getElementById('player-name').value.trim() || 'ゲスト';
-        socket.emit('joinRandomRoom', { name, avatar: document.getElementById('my-avatar').src });
+        socket.emit('joinRandomRoom', { user: currentUser });
         showScreen('screen-room');
     }
 
     function joinRoom() {
-        const name = document.getElementById('player-name').value.trim() || 'ゲスト';
         const roomCode = document.getElementById('room-code').value.trim();
         if (!roomCode) return alert('部屋IDを入力してください');
-        socket.emit('joinRoom', { roomCode, name, avatar: document.getElementById('my-avatar').src });
+        socket.emit('joinRoom', { roomCode, user: currentUser });
         showScreen('screen-room');
         document.getElementById('display-room').innerText = roomCode;
     }
@@ -355,7 +395,10 @@
         Object.values(room.players).forEach(p => {
             list.innerHTML += `
                 <div class="player-card">
-                    <div class="player-info"><span style="font-weight:700;">${p.name}</span></div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%;">
+                        <span style="font-weight:700;">${p.name}</span>
+                    </div>
                 </div>`;
         });
     });
@@ -369,11 +412,11 @@
         renderNightPhase(room);
     });
 
-    // 🌙 夜描画 (市民向けの案内メッセージを追加)
+    // 🌙 夜描画 (市民向けの案内も明記)
     function renderNightPhase(room) {
         document.getElementById('phase-title').innerText = "🌙 夜の行動";
         
-        let desc = "能力者が行動中…しばらくお待ちください。";
+        let desc = "能力者が行動を行っています。しばらくお待ちください…";
         if (myRole === '人狼') desc = "襲撃相手を選択してください。";
         else if (myRole === '占い師') desc = "占う相手を選択してください。";
         else if (myRole === '騎士') desc = "護衛相手を選択してください。";
@@ -391,7 +434,10 @@
             }
             list.innerHTML += `
                 <div class="player-card">
-                    <span style="font-weight:700;">${p.name}</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%;">
+                        <span style="font-weight:700;">${p.name}</span>
+                    </div>
                     ${btnHtml}
                 </div>`;
         });
@@ -399,7 +445,7 @@
 
     function sendNightAction(targetId) {
         socket.emit('nightAction', { targetId });
-        document.getElementById('phase-desc').innerText = "行動を選択しました。待機中...";
+        document.getElementById('phase-desc').innerText = "行動を送信しました。夜が終わるまで待機してください…";
         document.getElementById('game-player-list').innerHTML = '';
     }
 
@@ -418,12 +464,15 @@
         Object.values(room.players).forEach(p => {
             list.innerHTML += `
                 <div class="player-card ${!p.isAlive ? 'dead' : ''}">
-                    <span style="font-weight:700;">${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%;">
+                        <span style="font-weight:700;">${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>
+                    </div>
                 </div>`;
         });
     });
 
-    // 💬 チャット送信機能
+    // 💬 チャット処理
     function sendChat() {
         const text = document.getElementById('chat-input').value.trim();
         const type = document.getElementById('chat-type').value;
@@ -432,14 +481,19 @@
         document.getElementById('chat-input').value = '';
     }
 
-    // 💬 チャット受信機能
     socket.on('chatMessage', ({ sender, text }) => {
         const box = document.getElementById('chat-box');
         box.innerHTML += `<div class="chat-msg"><b>${sender}:</b> ${text}</div>`;
         box.scrollTop = box.scrollHeight;
     });
 
-    function buyItem(itemId, cost) { alert('購入機能'); }
+    function buyItem(item, cost) {
+        if (!currentUser) return alert('アイテムを購入するにはログインしてください');
+        if (currentUser.pt < cost) return alert('PTが不足しています');
+        currentUser.pt -= cost;
+        document.getElementById('user-pt').innerText = currentUser.pt;
+        alert('購入が完了しました！');
+    }
 </script>
 </body>
 </html>
