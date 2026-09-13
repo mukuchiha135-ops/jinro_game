@@ -184,7 +184,6 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="container">
-    <!-- ナビゲーションバー -->
     <div class="navbar">
         <div class="user-info">
             <img id="my-avatar" class="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest">
@@ -200,12 +199,10 @@
         </div>
     </div>
 
-    <!-- メインレイアウト -->
     <div class="main-layout">
         <div class="game-panel">
             <h1 class="app-title">ONLINE JINRO</h1>
 
-            <!-- 1. ロビースクリーン -->
             <div id="screen-lobby" class="screen active">
                 <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
                     <button class="btn-gold" onclick="joinRandomRoom()">🎲 QUICK JOIN (ランダム部屋に入室)</button>
@@ -216,7 +213,6 @@
                 </div>
             </div>
 
-            <!-- 2. 待機部屋スクリーン -->
             <div id="screen-room" class="screen">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h2>ROOM: <span id="display-room" style="color: var(--accent-cyan); font-family: 'Orbitron';"></span></h2>
@@ -225,7 +221,6 @@
 
                 <div id="player-grid-room" class="player-grid"></div>
 
-                <!-- 👑 ホスト専用 役職配分設定 -->
                 <div id="host-controls" style="display: none; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); margin-top: 14px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="font-size: 0.95rem; color: var(--accent-gold);">⚙️ 役職人数の設定</h3>
@@ -238,7 +233,6 @@
                 </div>
             </div>
 
-            <!-- 3. ゲーム画面 -->
             <div id="screen-game" class="screen">
                 <div class="status-header">
                     <div>
@@ -270,7 +264,6 @@
             </div>
         </div>
 
-        <!-- サイドパネル -->
         <div class="side-panel">
             <div class="card-box">
                 <h3 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 8px;">📝 推理ノート</h3>
@@ -280,7 +273,7 @@
     </div>
 </div>
 
-<!-- 🔑 1. ログイン / 新規登録 モーダル -->
+<!-- モーダル各種 -->
 <div id="auth-modal" class="modal-overlay">
     <div class="modal-content" style="max-width: 400px;">
         <h2 style="color: var(--accent-cyan); margin-bottom: 12px; text-align: center;">ユーザー認証</h2>
@@ -296,18 +289,13 @@
     </div>
 </div>
 
-<!-- 📖 2. ゲームルール & 12役職図鑑 モーダル -->
 <div id="rule-modal" class="modal-overlay">
     <div class="modal-content">
         <h2 style="color: var(--accent-cyan); margin-bottom: 12px; text-align: center;">📖 人狼ゲームのルール</h2>
         <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-main); margin-bottom: 16px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;">
-            <p><b>【概要】</b> 市民陣営と人狼陣営（および第三陣営）に分かれて戦う正体隠匿ゲームです。</p>
-            <p><b>昼のターン:</b> 全員で議論し、最も人狼だと疑わしいプレイヤーを1人選んで追放します。</p>
-            <p><b>夜のターン:</b> 各役職が能力を使用し、人狼は市民1人を襲撃します。</p>
-            <p><b>【勝利条件】</b><br>
-            ・市民陣営: 人狼を全滅させる。<br>
-            ・人狼陣営: 人狼の人数が生存している市民側の人数と同数以上になる。<br>
-            ・吸血鬼: 他陣営の勝利を阻止し最後まで生き残る。</p>
+            <p><b>【概要】</b> 市民陣営と人狼陣営に分かれて戦う正体隠匿ゲームです。</p>
+            <p><b>昼のターン:</b> 全員で議論し、投票で人狼を追放します。</p>
+            <p><b>夜のターン:</b> 能力者が行動を起こし、人狼が襲撃対象を選びます。</p>
         </div>
 
         <h3 style="color: var(--accent-gold); margin-bottom: 10px;">全12役職一覧</h3>
@@ -317,7 +305,6 @@
     </div>
 </div>
 
-<!-- ⚙️ 3. ゲーム設定 モーダル -->
 <div id="settings-modal" class="modal-overlay">
     <div class="modal-content" style="max-width: 450px;">
         <h2 style="color: var(--accent-cyan); margin-bottom: 16px; text-align: center;">⚙️ システム設定</h2>
@@ -330,10 +317,6 @@
                 <label>🔔 効果音 (SE) 音量</label>
                 <input type="range" id="se-volume" min="0" max="100" value="80">
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>💬 チャット通知ポップアップ</span>
-                <input type="checkbox" id="chat-notify" checked style="width: auto;">
-            </div>
         </div>
         <button class="btn-secondary" style="margin-top: 20px;" onclick="closeModal('settings-modal')">保存して閉じる</button>
     </div>
@@ -344,6 +327,8 @@
     let myId = null;
     let myRole = '市民';
     let currentUser = null;
+    let hasActedNight = false; // 夜の行動フラグ
+    let hasVotedDay = false;  // 昼の投票フラグ
 
     const ROLE_MASTER = [
         { id: 'citizen', name: '市民', icon: '👱‍♂️', desc: '能力なし。議論と推理で人狼を探す。' },
@@ -364,7 +349,6 @@
 
     socket.on('connect', () => { myId = socket.id; });
 
-    // 🎨 キャンバスアニメーション
     (function initCanvas() {
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
@@ -405,17 +389,11 @@
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-    // 🔑 ログイン・登録処理
     function submitAuth(type) {
         const username = document.getElementById('auth-username').value.trim();
         const password = document.getElementById('auth-password').value.trim();
         if (!username || !password) return alert('ユーザー名とパスワードを入力してください');
-
-        if (type === 'login') {
-            socket.emit('loginUser', { username, password });
-        } else {
-            socket.emit('registerUser', { username, password });
-        }
+        socket.emit(type === 'login' ? 'loginUser' : 'registerUser', { username, password });
     }
 
     socket.on('authResponse', ({ success, message, user }) => {
@@ -429,7 +407,6 @@
         }
     });
 
-    // 図鑑表示
     (function renderRoleGuide() {
         const container = document.getElementById('role-guide-list');
         container.innerHTML = ROLE_MASTER.map(r => `
@@ -440,7 +417,6 @@
         `).join('');
     })();
 
-    // 役職カウンター表示
     function renderRoleCounters() {
         const container = document.getElementById('role-counters');
         let total = 0;
@@ -467,7 +443,6 @@
     }
     renderRoleCounters();
 
-    // 通信処理
     function joinRandomRoom() { socket.emit('joinRandomRoom', { user: currentUser }); showScreen('screen-room'); }
     function joinRoom() {
         const roomCode = document.getElementById('room-code').value.trim();
@@ -506,17 +481,44 @@
         document.getElementById('timer-display').innerText = `${min}:${sec}`;
     });
 
+    /* 🌙 夜のターン処理 */
     socket.on('startNight', ({ room }) => {
+        hasActedNight = false; // 夜の行動フラグをリセット
         document.getElementById('phase-title').innerText = "🌙 夜の行動";
-        document.getElementById('phase-desc').innerText = "能力者は対象を選択してください。";
+        
+        // 役職に応じた説明テキストの設定
+        const roleTextMap = {
+            '人狼': '襲撃するプレイヤーを1人選択してください。',
+            '占い師': '占うプレイヤーを1人選択してください。',
+            '騎士': '護衛するプレイヤーを1人選択してください。'
+        };
+        document.getElementById('phase-desc').innerText = roleTextMap[myRole] || '夜の静けさが訪れました…';
 
+        renderNightGrid(room);
+    });
+
+    function renderNightGrid(room) {
         const grid = document.getElementById('game-player-grid');
+        const isActionableRole = ['人狼', '占い師', '騎士'].includes(myRole);
+
         grid.innerHTML = Object.values(room.players).map(p => {
             if (!p.isAlive) return '';
+
             let actionBtn = '';
-            if (p.id !== myId && ['人狼', '占い師', '騎士'].includes(myRole)) {
-                actionBtn = `<button style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="sendNightAction('${p.id}')">選択</button>`;
+            // 自分の能力で選択可能な対象の場合にボタンを生成（行動前のみ）
+            if (!hasActedNight && isActionableRole) {
+                if (myRole === '人狼' && p.role === '人狼') {
+                    // 人狼は仲間を襲撃不可
+                } else if (p.id !== myId || myRole === '騎士') {
+                    // 占い師・人狼は自分不可、騎士は自分護衛可
+                    let btnText = '選択';
+                    if (myRole === '人狼') btnText = '襲撃';
+                    if (myRole === '占い師') btnText = '占う';
+                    if (myRole === '騎士') btnText = '護衛';
+                    actionBtn = `<button class="action-btn" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="sendNightAction('${p.id}')">${btnText}</button>`;
+                }
             }
+
             return `
                 <div class="player-card">
                     <img class="p-avatar" src="${p.avatar}">
@@ -525,25 +527,39 @@
                 </div>
             `;
         }).join('');
-    });
-
-    function sendNightAction(targetId) {
-        socket.emit('nightAction', { targetId });
-        document.getElementById('phase-desc').innerText = "行動を送信しました…";
     }
 
-    socket.on('startDay', ({ room }) => {
-        document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
-        document.getElementById('phase-desc').innerText = "追放したいプレイヤーを選択し投票してください。";
+    function sendNightAction(targetId) {
+        if (hasActedNight) return;
+        hasActedNight = true; // 行動済みフラグを立てる
 
+        socket.emit('nightAction', { targetId, role: myRole });
+        document.getElementById('phase-desc').innerText = "✅ 行動を確定しました。他のプレイヤーを待っています…";
+
+        // ボタンをUI上からすべて削除
+        document.querySelectorAll('.action-btn').forEach(btn => btn.remove());
+    }
+
+    /* ☀️ 昼のターン処理 */
+    socket.on('startDay', ({ room }) => {
+        hasVotedDay = false; // 投票フラグをリセット
+        document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
+        document.getElementById('phase-desc').innerText = "追放したいプレイヤーを選択して投票してください。";
+
+        renderDayGrid(room);
+    });
+
+    function renderDayGrid(room) {
         const grid = document.getElementById('game-player-grid');
         const isMeAlive = room.players[myId]?.isAlive;
 
         grid.innerHTML = Object.values(room.players).map(p => {
             let voteBtn = '';
-            if (isMeAlive && p.isAlive && p.id !== myId) {
-                voteBtn = `<button class="btn-red" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="castVote('${p.id}')">投票</button>`;
+            // 生存しており、投票前で、自分以外の生きているプレイヤーのみ投票可
+            if (isMeAlive && p.isAlive && p.id !== myId && !hasVotedDay) {
+                voteBtn = `<button class="vote-btn btn-red" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="castVote('${p.id}')">投票</button>`;
             }
+
             return `
                 <div class="player-card ${!p.isAlive ? 'dead' : ''}">
                     <img class="p-avatar" src="${p.avatar}">
@@ -552,11 +568,17 @@
                 </div>
             `;
         }).join('');
-    });
+    }
 
     function castVote(targetId) {
+        if (hasVotedDay) return;
+        hasVotedDay = true; // 投票済みフラグを立てる
+
         socket.emit('castVote', { targetId });
-        document.getElementById('phase-desc').innerText = "投票完了。結果を待っています…";
+        document.getElementById('phase-desc').innerText = "✅ 投票が完了しました。集計を待っています…";
+
+        // ボタンをUI上からすべて即時削除
+        document.querySelectorAll('.vote-btn').forEach(btn => btn.remove());
     }
 
     socket.on('chatMessage', ({ sender, text, type }) => {
