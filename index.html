@@ -307,26 +307,26 @@
             <h3>⏳ ゲームの進行手順</h3>
             <div class="rule-step"><b>1. 役職決定</b>: 参加者にランダムで役職（市民・人狼・占い師・騎士）が割り振られます。</div>
             <div class="rule-step"><b>2. 夜フェーズ</b>: 人狼は襲撃先、占い師は占う相手、騎士は守る相手をこっそり選択します。</div>
-            <div class="rule-step"><b>3. 昼フェーズ</b>: 昨夜の犠牲者が発表され、全員でチャット討論を行って投票を行います。</div>
+            <div class="rule-step"><b>3. 昼フェーズ</b>: 昨夜の犠牲者が発表され、全員でチャット議論および投票を行います。</div>
         </div>
 
         <div class="rule-section">
             <h3>🎴 役職一覧</h3>
             <div class="role-card-rule">
                 <div class="role-title"><span>👱‍♂️ 市民 (陣営: 市民)</span></div>
-                特殊な能力はありません。チャットでの議論と推理で人狼を見つけ出します。
+                特殊な能力はありません。議論と推理で人狼を見つけ出します。
             </div>
             <div class="role-card-rule" style="border-left-color: var(--accent-red);">
                 <div class="role-title" style="color: var(--accent-red);"><span>🐺 人狼 (陣営: 人狼)</span></div>
-                夜の間に市民グループから1人を指定して襲撃します。仲間同士で専用チャットが可能です。
+                夜の間に市民グループから1人を指定して襲撃します。
             </div>
             <div class="role-card-rule" style="border-left-color: var(--accent-blue);">
                 <div class="role-title" style="color: var(--accent-blue);"><span>🔮 占い師 (陣営: 市民)</span></div>
-                夜の間にプレイヤー1人を選択し、その人が「人狼」か「人狼でない」かを知ることができます。
+                夜の間にプレイヤー1人を選択し、その人が「人狼」かどうかを知ることができます。
             </div>
             <div class="role-card-rule" style="border-left-color: #22c55e;">
                 <div class="role-title" style="color: #22c55e;"><span>🛡️ 騎士 (陣営: 市民)</span></div>
-                夜の間に自分以外のプレイヤー1人を守ります。守られたプレイヤーは人狼の襲撃から生き残ります。
+                夜の間に自分以外のプレイヤー1人を守り、人狼の襲撃から防ぎます。
             </div>
         </div>
 
@@ -361,7 +361,7 @@
 
     socket.on('connect', () => { myId = socket.id; });
 
-    // ✨ 動的背景
+    // 背景キャンバス設定
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -384,7 +384,7 @@
     }
     drawParticles();
 
-    // ⏱️ タイマー受領
+    // タイマー受領
     socket.on('timerUpdate', ({ timeLeft }) => {
         const min = Math.floor(timeLeft / 60);
         const sec = timeLeft % 60;
@@ -457,7 +457,6 @@
                 </div>`;
         });
 
-        // 最初に入った人（ホスト）にのみスタートボタンを表示
         const startBtn = document.getElementById('start-btn');
         const waitMsg = document.getElementById('host-wait-msg');
         if (myId === room.hostId) {
@@ -529,6 +528,15 @@
         list.innerHTML = '';
 
         const isMeAlive = room.players[myId]?.isAlive;
+
+        if (isMeAlive) {
+            list.innerHTML += `
+                <div style="margin-bottom: 12px; text-align: center;">
+                    <button class="btn-secondary" style="width: 100%; border: 1px dashed var(--accent-blue);" onclick="castVote('skip')">
+                        🚫 処刑をスキップ（投票を見送る）
+                    </button>
+                </div>`;
+        }
 
         Object.values(room.players).forEach(p => {
             let voteBtn = '';
