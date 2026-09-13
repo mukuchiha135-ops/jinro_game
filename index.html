@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オンライン人狼 - Web Wolf Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #12181f;
+            --panel-bg: #1e2630;
+            --accent-red: #ff4757;
+            --accent-blue: #70a1ff;
+            --accent-gold: #ffa502;
+            --text-color: #f1f2f6;
+            --border-color: #2ed573;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px 10px;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1000px;
+            gap: 20px;
+        }
+
+        @media (min-width: 800px) {
+            .main-layout {
+                flex-direction: row;
+            }
+        }
+
+        .game-panel {
+            flex: 2;
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .memo-panel {
+            flex: 1;
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            color: var(--accent-red);
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #3a4754;
+            background: #141a21;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent-red);
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .screen { display: none; }
+        .active { display: block; }
+
+        /* プリセットボタン */
+        .preset-btns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .preset-btn {
+            background: #2f3640;
+            font-size: 0.8rem;
+            padding: 8px;
+            margin: 0;
+        }
+
+        .preset-btn:hover { background: #4b6584; }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+            background: #141a21;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 12px 0;
+        }
+
+        .role-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .role-item input {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        /* タイマー表示 */
+        .timer-box {
+            background: linear-gradient(135deg, #2f3542, #1e272e);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 15px;
+            border: 1px solid var(--accent-gold);
+        }
+
+        .player-card {
+            background: #252d38;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .role-badge {
+            background: var(--accent-red);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .dead {
+            opacity: 0.4;
+            filter: grayscale(100%);
+            border-left-color: #747d8c;
+        }
+
+        .action-btn {
+            background: #8e44ad;
+            width: auto;
+            padding: 6px 14px;
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+        /* COボタン */
+        .co-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+        }
+
+        .co-btn {
+            background: #00a8ff;
+            width: auto;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        /* チャットログ */
+        #chat-box {
+            background: #141a21;
+            height: 200px;
+            overflow-y: auto;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border: 1px solid #2f3640;
+        }
+
+        .chat-msg {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .chat-wolf { color: var(--accent-red); }
+        .chat-share { color: var(--accent-blue); }
+        .chat-co {
+            color: var(--accent-gold);
+            font-weight: bold;
+            background: rgba(255, 165, 2, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .chat-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-row input { flex: 1; }
+        .chat-row button { width: 80px; margin: 8px 0; }
+
+        textarea#personal-memo {
+            height: 300px;
+            resize: vertical;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="main-layout">
+        <!-- メインパネル -->
+        <div class="game-panel">
+            <h1>ONLINE JINRO</h1>
+
+            <!-- ロビー画面 -->
+            <div id="screen-lobby" class="screen active">
+                <input type="text" id="player-name" placeholder="プレイヤー名を入力">
+                <input type="text" id="room-code" placeholder="部屋番号 (例: 7777)">
+                <button onclick="joinRoom()">部屋に入る / 作成</button>
+            </div>
+
+            <!-- 待機部屋 -->
+            <div id="screen-room" class="screen">
+                <h2>ROOM: <span id="display-room" style="color: var(--accent-blue);"></span></h2>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size:0.85rem; color:#a4b0be;">⚡ 配役推奨セット:</label>
+                    <div class="preset-btns">
+                        <button class="preset-btn" onclick="applyPreset('small')">少人数 (4~6)</button>
+                        <button class="preset-btn" onclick="applyPreset('medium')">中人数 (7~9)</button>
+                        <button class="preset-btn" onclick="applyPreset('large')">大人数 (10~)</button>
+                    </div>
+                </div>
+
+                <div class="role-grid">
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="人狼" checked disabled>人狼</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="占い師" checked>占い師</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="霊媒師" checked>霊媒師</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="騎士（狩人）" checked>騎士</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="ハンター">ハンター</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="狂人">狂人</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="多重人格者">多重人格者</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="サイコキラー">サイコキラー</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="吸血鬼">吸血鬼</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="共有者">共有者</label>
+                    <label class="role-item"><input type="checkbox" class="role-chk" value="恋人">恋人</label>
+                </div>
+
+                <div style="margin: 10px 0;">
+                    <label style="font-size:0.85rem; color:#a4b0be;">⏱️ 議論時間:</label>
+                    <select id="time-limit">
+                        <option value="60">1分</option>
+                        <option value="120">2分</option>
+                        <option value="180" selected>3分</option>
+                        <option value="300">5分</option>
+                    </select>
+                </div>
+
+                <p style="margin:10px 0; color:#a4b0be; font-size:0.9rem;">参加メンバー:</p>
+                <div id="player-list"></div>
+                <button onclick="startGame()" style="margin-top:15px;">ゲームを開始</button>
+            </div>
+
+            <!-- ゲーム画面 -->
+            <div id="screen-game" class="screen">
+                <div id="timer-display" class="timer-box">⏱️ 議論時間: --:--</div>
+
+                <div style="background:#141a21; padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
+                    あなたの役職: <span id="my-role" class="role-badge">?</span>
+                    <div id="result-notify" style="margin-top:6px; color:var(--accent-blue); font-weight:bold; font-size:0.85rem;"></div>
+                </div>
+
+                <h3 id="phase-title" style="color:var(--accent-gold); text-align:center; margin-bottom:4px;">夜の行動</h3>
+                <p id="phase-desc" style="text-align:center; margin-bottom:12px; font-size:0.85rem; color:#a4b0be;"></p>
+
+                <div id="game-player-list"></div>
+
+                <!-- CO(カミングアウト)ボタン -->
+                <div style="margin-top:10px;">
+                    <label style="font-size:0.8rem; color:#a4b0be;">📢 ワンタップ宣言 (CO):</label>
+                    <div class="co-container">
+                        <button class="co-btn" onclick="sendCO('占い師CO')">占い師CO</button>
+                        <button class="co-btn" onclick="sendCO('霊媒師CO')">霊媒師CO</button>
+                        <button class="co-btn" onclick="sendCO('騎士CO')">騎士CO</button>
+                        <button class="co-btn" onclick="sendCO('市民主張')">市民主張</button>
+                        <button class="co-btn" onclick="sendCO('対抗CO')">対抗CO</button>
+                    </div>
+                </div>
+
+                <!-- チャット -->
+                <div id="chat-box"></div>
+                <div class="chat-row">
+                    <select id="chat-type" style="width: 100px;">
+                        <option value="all">全体</option>
+                        <option value="wolf">人狼</option>
+                        <option value="share">共有者</option>
+                    </select>
+                    <input type="text" id="chat-input" placeholder="メッセージを入力...">
+                    <button onclick="sendChat()">送信</button>
+                </div>
+            </div>
+
+            <!-- 結果画面 -->
+            <div id="screen-result" class="screen" style="text-align:center;">
+                <h2 id="winner-text" style="color:var(--accent-red); font-size:2rem; margin-bottom:20px;"></h2>
+                <button onclick="location.reload()">ロビーに戻る</button>
+            </div>
+        </div>
+
+        <!-- 個人用メモ帳 -->
+        <div class="memo-panel">
+            <h3 style="color:var(--accent-blue); margin-bottom: 8px;">📝 個人用メモ</h3>
+            <p style="font-size:0.75rem; color:#a4b0be; margin-bottom:10px;">役職のCO状況や白黒結果の整理用（他の人には見えません）。</p>
+            <textarea id="personal-memo" placeholder="例：&#10;Aさん: 占いCO (B白)&#10;Cさん: 投票先怪しい"></textarea>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let myId = null;
+        let myRole = null;
+        let roomData = null;
+
+        socket.on('connect', () => { myId = socket.id; });
+
+        function joinRoom() {
+            const name = document.getElementById('player-name').value.trim();
+            const roomCode = document.getElementById('room-code').value.trim();
+            if (!name || !roomCode) return alert('名前と部屋番号を入力してください');
+
+            socket.emit('joinRoom', { roomCode, name });
+            showScreen('screen-room');
+            document.getElementById('display-room').innerText = roomCode;
+        }
+
+        function applyPreset(type) {
+            const chks = document.querySelectorAll('.role-chk');
+            chks.forEach(c => { if(c.value !== '人狼') c.checked = false; });
+
+            if (type === 'small') {
+                setRoleChecked(['人狼', '占い師']);
+            } else if (type === 'medium') {
+                setRoleChecked(['人狼', '占い師', '霊媒師', '騎士（狩人）', '狂人']);
+            } else if (type === 'large') {
+                setRoleChecked(['人狼', '占い師', '霊媒師', '騎士（狩人）', 'ハンター', '狂人', '多重人格者', 'サイコキラー', '吸血鬼', '共有者', '恋人']);
+            }
+        }
+
+        function setRoleChecked(roles) {
+            roles.forEach(roleName => {
+                const target = Array.from(document.querySelectorAll('.role-chk')).find(c => c.value === roleName);
+                if (target) target.checked = true;
+            });
+        }
+
+        socket.on('updateRoom', (room) => {
+            roomData = room;
+            const list = document.getElementById('player-list');
+            list.innerHTML = '';
+            Object.values(room.players).forEach(p => {
+                list.innerHTML += `<div class="player-card"><span>${p.name}</span></div>`;
+            });
+        });
+
+        function startGame() {
+            const chks = document.querySelectorAll('.role-chk:checked');
+            const selectedRoles = Array.from(chks).map(c => c.value);
+            const dayTimeLimit = document.getElementById('time-limit').value;
+            socket.emit('startGame', { selectedRoles, dayTimeLimit });
+        }
+
+        socket.on('gameStarted', (room) => {
+            roomData = room;
+            myRole = room.players[myId].role;
+            document.getElementById('my-role').innerText = myRole;
+
+            if (myRole === '恋人' && room.loverPairs) {
+                const partnerId = room.loverPairs.find(id => id !== myId);
+                if (partnerId) {
+                    appendChat({ sender: 'GM通知', text: `あなたの恋人は ${room.players[partnerId].name} さんです。`, type: 'system' });
+                }
+            }
+
+            showScreen('screen-game');
+            renderNightPhase(room);
+        });
+
+        socket.on('updatePlayerState', (player) => {
+            if (player.nightResult) {
+                document.getElementById('result-notify').innerText = player.nightResult;
+            }
+        });
+
+        socket.on('timerUpdate', ({ timeLeft }) => {
+            const min = Math.floor(timeLeft / 60);
+            const sec = timeLeft % 60;
+            document.getElementById('timer-display').innerText = `⏱️ 議論残り時間: ${min}:${sec < 10 ? '0' : ''}${sec}`;
+        });
+
+        socket.on('timeUp', () => {
+            document.getElementById('timer-display').innerText = "⏱️ 時間切れ！速やかに投票へ移動してください。";
+        });
+
+        function renderNightPhase(room) {
+            document.getElementById('phase-title').innerText = "🌙 夜の行動";
+            let desc = "能力者は対象を選択してください。";
+
+            if (myRole === '人狼') desc = "襲撃相手を選択してください。";
+            else if (myRole === 'サイコキラー') desc = "襲撃相手を選択してください。";
+            else if (myRole === '占い師') desc = "占う対象を選択してください。";
+            else if (myRole === '騎士（狩人）') desc = "護衛対象を選択してください。";
+
+            document.getElementById('phase-desc').innerText = desc;
+
+            const list = document.getElementById('game-player-list');
+            list.innerHTML = '';
+
+            Object.values(room.players).forEach(p => {
+                if (!p.isAlive) return;
+                let btnHtml = '';
+                if (p.id !== myId && ['人狼', 'サイコキラー', '占い師', '騎士（狩人）'].includes(myRole)) {
+                    btnHtml = `<button class="action-btn" onclick="sendNightAction('${p.id}')">選択</button>`;
+                }
+                list.innerHTML += `<div class="player-card"><span>${p.name}</span>${btnHtml}</div>`;
+            });
+        }
+
+        function sendNightAction(targetId) {
+            socket.emit('nightAction', { targetId });
+            document.getElementById('phase-desc').innerText = "行動完了。朝を待っています...";
+            document.getElementById('game-player-list').innerHTML = '';
+        }
+
+        socket.on('startDay', ({ room, killedIds }) => {
+            roomData = room;
+            document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
+            
+            let msg = killedIds.length > 0 
+                ? `${killedIds.map(id => room.players[id].name).join(' さん, ')} さんが死亡しました。`
+                : "昨夜は誰も死にませんでした。";
+
+            document.getElementById('phase-desc').innerText = msg + " 議論して追放者を選択してください。";
+
+            const list = document.getElementById('game-player-list');
+            list.innerHTML = '';
+            const isMyAlive = room.players[myId].isAlive;
+
+            Object.values(room.players).forEach(p => {
+                let btnHtml = '';
+                if (isMyAlive && p.isAlive && p.id !== myId) {
+                    btnHtml = `<button class="action-btn" onclick="sendVote('${p.id}')">投票</button>`;
+                }
+                list.innerHTML += `<div class="player-card ${!p.isAlive ? 'dead' : ''}">
+                    <span>${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>${btnHtml}
+                </div>`;
+            });
+        });
+
+        function sendVote(targetId) {
+            socket.emit('castVote', { targetId });
+            document.getElementById('phase-desc').innerText = "投票完了。集計中...";
+            document.getElementById('game-player-list').innerHTML = '';
+        }
+
+        socket.on('startNight', ({ room, executedId }) => {
+            roomData = room;
+            alert(`【自動GM】${room.players[executedId].name} さんが処刑されました。`);
+            renderNightPhase(room);
+        });
+
+        socket.on('hunterTriggered', ({ hunterName, targetName }) => {
+            alert(`【ハンター発動】${hunterName} が ${targetName} を道連れにしました！`);
+        });
+
+        function sendCO(roleText) {
+            socket.emit('sendMessage', { text: `【CO】${roleText}です！`, type: 'all', isCO: true });
+        }
+
+        function sendChat() {
+            const text = document.getElementById('chat-input').value.trim();
+            const type = document.getElementById('chat-type').value;
+            if (!text) return;
+
+            socket.emit('sendMessage', { text, type, isCO: false });
+            document.getElementById('chat-input').value = '';
+        }
+
+        socket.on('chatMessage', (msgObj) => {
+            appendChat(msgObj);
+        });
+
+        function appendChat({ sender, text, type, isCO }) {
+            const box = document.getElementById('chat-box');
+            let cssClass = '';
+            let prefix = '';
+
+            if (isCO) cssClass = 'chat-co';
+            else if (type === 'wolf') { cssClass = 'chat-wolf'; prefix = '[狼] '; }
+            else if (type === 'share') { cssClass = 'chat-share'; prefix = '[共有] '; }
+            else if (type === 'system') { cssClass = 'chat-system'; }
+
+            box.innerHTML += `<div class="chat-msg ${cssClass}"><b>${prefix}${sender}:</b> ${text}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        socket.on('gameOver', ({ winner }) => {
+            showScreen('screen-result');
+            document.getElementById('winner-text').innerText = `${winner} の勝利！`;
+        });
+
+        socket.on('errorMsg', (msg) => alert(msg));
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
