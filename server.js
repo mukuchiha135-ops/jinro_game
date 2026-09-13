@@ -12,7 +12,7 @@ const usersDB = {};
 const rooms = {};
 
 io.on('connection', (socket) => {
-    // 🔐 ユーザー登録 / ログイン
+    // 🔐 ユーザー登録
     socket.on('registerUser', ({ username, password }) => {
         if (usersDB[username]) {
             return socket.emit('authResponse', { success: false, message: 'このユーザー名は既に使用されています。' });
@@ -28,6 +28,7 @@ io.on('connection', (socket) => {
         socket.emit('authResponse', { success: true, message: 'アカウントを作成しました！', user: usersDB[username] });
     });
 
+    // 🔐 ログイン
     socket.on('loginUser', ({ username, password }) => {
         const user = usersDB[username];
         if (!user || user.password !== password) {
@@ -36,7 +37,7 @@ io.on('connection', (socket) => {
         socket.emit('authResponse', { success: true, message: 'ログインに成功しました！', user });
     });
 
-    // 🎮 部屋入室・作成
+    // 🎮 部屋作成・参加
     socket.on('joinRoom', ({ roomCode, user }) => {
         socket.join(roomCode);
         socket.roomCode = roomCode;
@@ -56,6 +57,7 @@ io.on('connection', (socket) => {
         io.to(roomCode).emit('updateRoom', rooms[roomCode]);
     });
 
+    // 🎲 ランダム参加
     socket.on('joinRandomRoom', ({ user }) => {
         let targetRoomCode = Object.keys(rooms).find(code => rooms[code].phase === 'lobby');
         if (!targetRoomCode) {
@@ -80,15 +82,14 @@ io.on('connection', (socket) => {
         io.to(targetRoomCode).emit('updateRoom', rooms[targetRoomCode]);
     });
 
-    // 🚀 ゲーム開始（一番最初に入った人＝ホストのみ実行可能）
+    // 🚀 ゲーム開始（ホストのみ操作可能）
     socket.on('startGame', () => {
         const roomCode = socket.roomCode;
         const room = rooms[roomCode];
         if (!room) return;
 
-        // ホスト（一番最初に入った人）以外は開始できない
         if (room.hostId !== socket.id) {
-            return socket.emit('chatMessage', { sender: 'システム', text: 'ゲームを開始できるのはホスト（最初に入室した人）のみです。' });
+            return socket.emit('chatMessage', { sender: 'システム', text: 'ゲームを開始できるのはホストのみです。' });
         }
 
         const playerIds = Object.keys(room.players);
@@ -130,7 +131,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 🗳️ 昼の投票行動
+    // 🗳️ 昼の投票行動（スキップ対応）
     socket.on('castVote', ({ targetId }) => {
         const roomCode = socket.roomCode;
         const room = rooms[roomCode];
@@ -171,8 +172,7 @@ io.on('connection', (socket) => {
         const roomCode = socket.roomCode;
         if (roomCode && rooms[roomCode]) {
             delete rooms[roomCode].players[socket.id];
-            
-            // ホストが退室した場合は、次に古いプレイヤーにホスト権限を移行
+
             if (rooms[roomCode].hostId === socket.id) {
                 const remainingPlayerIds = Object.keys(rooms[roomCode].players);
                 if (remainingPlayerIds.length > 0) {
@@ -187,7 +187,7 @@ io.on('connection', (socket) => {
 function createNewRoom(roomCode, hostId) {
     return {
         id: roomCode,
-        hostId: hostId, // 一番最初に入ってきた人をホストに設定
+        hostId: hostId,
         players: {},
         phase: 'lobby',
         timer: null,
@@ -205,7 +205,7 @@ function checkGameOver(roomCode) {
     const aliveWolves = alivePlayers.filter(p => p.role === '人狼');
     const aliveCitizens = alivePlayers.filter(p => p.role !== '人狼');
 
-    // 市民の勝利条件: 人狼を撲滅すること (人狼の数が 0)
+    // 市民の勝利条件: 人狼を全滅させる
     if (aliveWolves.length === 0) {
         clearInterval(room.timer);
         room.phase = 'ended';
@@ -213,7 +213,7 @@ function checkGameOver(roomCode) {
         return true;
     }
 
-    // 人狼の勝利条件: 人狼の人数が市民側の人数と平等、または上回ること (人狼 >= 市民)
+    // 人狼の勝利条件: 人狼の人数が市民の人数と同数以上（人狼 >= 市民）
     if (aliveWolves.length >= aliveCitizens.length) {
         clearInterval(room.timer);
         room.phase = 'ended';
@@ -224,6 +224,7 @@ function checkGameOver(roomCode) {
     return false;
 }
 
+// 🌙 夜フェーズ開始
 function startNightPhase(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
@@ -249,6 +250,7 @@ function startNightPhase(roomCode) {
     }, 1000);
 }
 
+// 朝の集計＆昼フェーズ開始
 function processNightResults(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
@@ -292,28 +294,46 @@ function processNightResults(roomCode) {
     }, 1000);
 }
 
+// 昼の集計（過半数スキップ対応）
 function processDayResults(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
 
+    const alivePlayers = Object.values(room.players).filter(p => p.isAlive);
     const voteCounts = {};
+    let skipVotes = 0;
+
     Object.values(room.votes).forEach(targetId => {
-        voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
-    });
-
-    let maxVotes = 0;
-    let executedId = null;
-
-    Object.entries(voteCounts).forEach(([targetId, count]) => {
-        if (count > maxVotes) {
-            maxVotes = count;
-            executedId = targetId;
+        if (targetId === 'skip') {
+            skipVotes++;
+        } else {
+            voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
         }
     });
 
-    if (executedId && room.players[executedId]) {
-        room.players[executedId].isAlive = false;
+    let executedId = null;
+    let resultMessage = "";
+
+    if (skipVotes > alivePlayers.length / 2) {
+        resultMessage = `スキップ票が過半数（${skipVotes}/${alivePlayers.length}票）を占めたため、本日の処刑は見送られました。`;
+    } else {
+        let maxVotes = 0;
+        Object.entries(voteCounts).forEach(([targetId, count]) => {
+            if (count > maxVotes) {
+                maxVotes = count;
+                executedId = targetId;
+            }
+        });
+
+        if (executedId && room.players[executedId]) {
+            room.players[executedId].isAlive = false;
+            resultMessage = `${room.players[executedId].name} さんが追放されました。`;
+        } else {
+            resultMessage = "投票が拮抗したため、本日の追放は見送られました。";
+        }
     }
+
+    io.to(roomCode).emit('chatMessage', { sender: '📢 裁判結果', text: resultMessage });
 
     if (checkGameOver(roomCode)) return;
 
