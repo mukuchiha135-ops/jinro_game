@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ONLINE JINRO - Ultimate Rulebook Edition</title>
+    <title>ONLINE JINRO - Ultimate Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -24,8 +24,7 @@
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Zen Kaku Gothic New', sans-serif;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
@@ -35,40 +34,25 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            padding: 12px 8px;
-            overflow-x: hidden;
-            position: relative;
+            display: flex; justify-content: center;
+            padding: 12px 8px; overflow-x: hidden; position: relative;
         }
 
         #bg-canvas {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
-            z-index: -1;
-            pointer-events: none;
+            z-index: -1; pointer-events: none;
         }
 
         .container {
-            width: 100%;
-            max-width: 1150px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            z-index: 1;
+            width: 100%; max-width: 1150px;
+            display: flex; flex-direction: column; gap: 16px; z-index: 1;
         }
 
-        /* --- ナビゲーション --- */
         .navbar {
-            background: var(--panel-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--panel-border);
-            padding: 12px 18px;
-            border-radius: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--panel-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border); padding: 12px 18px;
+            border-radius: 18px; display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
         }
 
@@ -85,11 +69,8 @@
             box-shadow: var(--glow-gold);
         }
 
-        /* --- メインレイアウト --- */
         .main-layout { display: flex; flex-direction: column; gap: 16px; }
-        @media (min-width: 880px) {
-            .main-layout { flex-direction: row; }
-        }
+        @media (min-width: 880px) { .main-layout { flex-direction: row; } }
 
         .game-panel {
             flex: 2.5; background: var(--panel-bg); backdrop-filter: blur(20px);
@@ -142,12 +123,11 @@
         .active { display: block; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- 📖 ルールモーダル用 UI --- */
+        /* モーダル */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
-            display: none; justify-content: center; align-items: center; z-index: 999;
-            padding: 16px;
+            display: none; justify-content: center; align-items: center; z-index: 999; padding: 16px;
         }
         .modal-overlay.open { display: flex; animation: fadeIn 0.3s ease-out; }
         .modal-content {
@@ -163,7 +143,7 @@
         .rule-section { margin-bottom: 20px; }
         .rule-section h3 {
             color: var(--accent-blue); font-size: 1.1rem; border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 6px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+            padding-bottom: 6px; margin-bottom: 10px;
         }
         .rule-step {
             background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 10px 14px;
@@ -174,9 +154,8 @@
             border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 0.85rem;
         }
         .role-title { font-weight: bold; color: var(--accent-gold); display: flex; justify-content: space-between; }
-        .role-camp { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); }
 
-        /* 3Dカードフリップ */
+        /* 3Dカード */
         .card-container {
             perspective: 1000px; width: 100%; max-width: 220px; height: 110px;
             margin: 12px auto; cursor: pointer;
@@ -234,7 +213,6 @@
         <div style="display: flex; gap: 8px;">
             <button class="btn-purple" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openRuleModal()">📖 ルール</button>
             <button class="btn-gold" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-shop')">🛒</button>
-            <button class="btn-secondary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-auth')">🔐</button>
         </div>
     </div>
 
@@ -242,17 +220,7 @@
         <div class="game-panel">
             <h1>ONLINE JINRO</h1>
 
-            <!-- 1. 認証画面 -->
-            <div id="screen-auth" class="screen">
-                <h2>🔐 アカウントログイン</h2>
-                <input type="email" id="auth-email" placeholder="メールアドレス">
-                <input type="password" id="auth-pass" placeholder="パスワード">
-                <button onclick="login()">ログイン</button>
-                <button class="btn-secondary" onclick="register()">新規登録</button>
-                <button class="btn-gold" onclick="showScreen('screen-lobby')">ゲストとして続行</button>
-            </div>
-
-            <!-- 2. ロビー画面 -->
+            <!-- 1. ロビー画面 -->
             <div id="screen-lobby" class="screen active">
                 <h2>🎮 ロビー</h2>
                 <input type="text" id="player-name" placeholder="プレイヤー名" value="名無し">
@@ -265,23 +233,21 @@
                 </div>
             </div>
 
-            <!-- 3. ショップ画面 -->
+            <!-- 2. ショップ画面 -->
             <div id="screen-shop" class="screen">
                 <h2>🛒 ポイントショップ</h2>
-                <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 12px;">対戦で使えるアイテムを購入できます。</p>
                 <button class="btn-gold" onclick="buyItem('crystal', 200)">🔮 水晶玉 (200 PT)</button>
-                <button class="btn-gold" style="margin-top: 8px;" onclick="buyItem('doll', 300)">🧸 身代わり人形 (300 PT)</button>
                 <button class="btn-secondary" style="margin-top: 18px;" onclick="showScreen('screen-lobby')">ロビーに戻る</button>
             </div>
 
-            <!-- 4. 待機部屋 -->
+            <!-- 3. 待機部屋 -->
             <div id="screen-room" class="screen">
                 <h2>ROOM: <span id="display-room" style="color: var(--accent-blue); font-family: 'Orbitron';"></span></h2>
                 <div id="player-list"></div>
                 <button onclick="startGame()" style="margin-top: 16px;">ゲームスタート</button>
             </div>
 
-            <!-- 5. ゲーム画面 -->
+            <!-- 4. ゲーム画面 -->
             <div id="screen-game" class="screen">
                 <div id="timer-display" class="timer-box">⏱️ TIME: --:--</div>
 
@@ -293,7 +259,7 @@
                         </div>
                         <div class="card-back">
                             <span style="font-size: 0.75rem; color: var(--text-sub);">あなたの配役</span>
-                            <strong id="my-role" style="font-size: 1.2rem; color: var(--accent-gold);">?</strong>
+                            <strong id="my-role" style="font-size: 1.2rem; color: var(--accent-gold);">市民</strong>
                         </div>
                     </div>
                 </div>
@@ -314,7 +280,7 @@
                 </div>
             </div>
 
-            <!-- 6. 結果画面 -->
+            <!-- 5. 結果画面 -->
             <div id="screen-result" class="screen" style="text-align: center; padding: 20px 0;">
                 <h2 id="winner-text" style="color: var(--accent-red); font-size: 2rem; font-family: 'Orbitron';"></h2>
                 <button onclick="location.reload()" style="margin-top: 20px;">ロビーに戻る</button>
@@ -330,64 +296,17 @@
     </div>
 </div>
 
-<!-- 📖 ルール＆役職説明モーダルウィンドウ -->
+<!-- モーダル -->
 <div id="rule-modal" class="modal-overlay">
     <div class="modal-content">
         <button class="modal-close" onclick="closeRuleModal()">✕</button>
         <h2 style="color: var(--accent-blue); margin-bottom: 16px; font-family: 'Orbitron';">📜 RULE BOOK & ROLES</h2>
-
         <div class="rule-section">
             <h3>⏳ ゲームの進行手順</h3>
-            <div class="rule-step"><b>1. 役職確認 (配役)</b><br>ゲーム開始時、各プレイヤーにランダムで役職が与えられます（カードをタップで確認）。</div>
-            <div class="rule-step"><b>2. 🌙 夜フェーズ (能力の使用)</b><br>能力者（人狼・占い師・騎士等）が裏で行動を選択します。人狼同士は専用チャットで連携可能です。</div>
-            <div class="rule-step"><b>3. ☀️ 昼フェーズ (議論＆追放投票)</b><br>昨夜の被害者が発表されます。生存者全員でチャット討論を行い、人狼と思われる1名を投票で処刑します。</div>
-            <div class="rule-step"><b>4. 勝利条件の判定</b><br>いずれかの陣営の勝利条件が満たされるまで「夜」と「昼」を繰り返します。</div>
+            <div class="rule-step"><b>1. 役職確認</b>: 開始時にランダムで決定。</div>
+            <div class="rule-step"><b>2. 夜フェーズ</b>: 能力者が行動を選択。</div>
+            <div class="rule-step"><b>3. 昼フェーズ</b>: 全員で議論し投票で追放。</div>
         </div>
-
-        <div class="rule-section">
-            <h3>🎭 役職一覧と能力</h3>
-            
-            <div class="role-card-rule" style="border-left-color: #00f0ff;">
-                <div class="role-title">👨‍🌾 市民 (Villager) <span class="role-camp" style="color:#00f0ff;">市民陣営</span></div>
-                特別な能力を持ちません。昼の議論で嘘を見抜き、正しい投票で人狼を追放に導きます。
-            </div>
-
-            <div class="role-card-rule" style="border-left-color: #ff2a5f;">
-                <div class="role-title">🐺 人狼 (Werewolf) <span class="role-camp" style="color:#ff2a5f;">人狼陣営</span></div>
-                毎夜、生存している市民1名を襲撃して殺害します。人狼同士は夜に内密チャットが可能です。<br><b>【勝利条件】</b>人狼の数が市民と同数以上になること。
-            </div>
-
-            <div class="role-card-rule" style="border-left-color: #ffb703;">
-                <div class="role-title">🔮 占い師 (Fortune Teller) <span class="role-camp" style="color:#00f0ff;">市民陣営</span></div>
-                毎夜、指定したプレイヤー1名が「人狼」か「人間（人狼以外）」かを調べることができます。
-            </div>
-
-            <div class="role-card-rule" style="border-left-color: #00f5d4;">
-                <div class="role-title">🛡️ 騎士 / 狩人 (Knight) <span class="role-camp" style="color:#00f0ff;">市民陣営</span></div>
-                毎夜、自分以外の1名を人狼の襲撃から護衛できます。成功するとその夜の被害者をゼロに抑えられます。
-            </div>
-
-            <div class="role-card-rule" style="border-left-color: #a855f7;">
-                <div class="role-title">👻 霊媒師 (Medium) <span class="role-camp" style="color:#00f0ff;">市民陣営</span></div>
-                毎夜、直前の昼に処刑されたプレイヤーが「人狼」だったか「人間」だったかを知ることができます。
-            </div>
-
-            <div class="role-card-rule" style="border-left-color: #ff2a5f;">
-                <div class="role-title">🤪 狂人 (Madman) <span class="role-camp" style="color:#ff2a5f;">人狼陣営</span></div>
-                能力はありませんが人狼陣営の味方です。嘘の占い結果などで場を混乱させ、人狼を勝ちに導きます。
-            </div>
-
-            <div class="role-card-rule" style="border-left-color: #f43f5e;">
-                <div class="role-title">🏹 ハンター (Hunter) <span class="role-camp" style="color:#00f0ff;">市民陣営</span></div>
-                自分が処刑または襲撃により死亡した瞬間、道連れにするプレイヤーを1名選んで道連れにできます。
-            </div>
-
-            <div class="role-card-rule" style="border-left-color: #eab308;">
-                <div class="role-title">🦊 妖狐 (Fox) <span class="role-camp" style="color:#eab308;">第三陣営</span></div>
-                人狼に襲撃されても死にません（占い師に占われると即死）。ゲーム終了時に生存していれば単独勝利となります。
-            </div>
-        </div>
-
         <button onclick="closeRuleModal()" style="margin-top: 10px;">閉じる</button>
     </div>
 </div>
@@ -395,61 +314,20 @@
 <script>
     const socket = io();
     let myId = null;
-    let myRole = null;
-    let currentRoom = null;
-    let userPT = parseInt(localStorage.getItem('userPT') || '500');
+    let myRole = '市民';
+    let userPT = 500;
 
     socket.on('connect', () => { myId = socket.id; });
 
-    function updatePTDisplay() {
-        document.getElementById('user-pt').innerText = userPT;
-        localStorage.setItem('userPT', userPT);
-    }
-    updatePTDisplay();
-
-    // モーダル操作関数
-    function openRuleModal() { document.getElementById('rule-modal').classList.add('open'); }
-    function closeRuleModal() { document.getElementById('rule-modal').classList.remove('open'); }
-
-    // Canvas背景
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    let isNight = false;
-
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    for (let i = 0; i < 40; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            radius: Math.random() * 2 + 1,
-            speedY: Math.random() * 0.5 + 0.2,
-            opacity: Math.random()
-        });
-    }
-
-    function animateParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-            p.y -= p.speedY;
-            if (p.y < 0) p.y = canvas.height;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fillStyle = (isNight ? 'rgba(168, 85, 247, ' : 'rgba(0, 240, 255, ') + p.opacity + ')';
-            ctx.fill();
-        });
-        requestAnimationFrame(animateParticles);
-    }
-    animateParticles();
-
+    // ⏱️ タイマー受信
     socket.on('timerUpdate', ({ timeLeft }) => {
         const min = Math.floor(timeLeft / 60);
         const sec = timeLeft % 60;
         document.getElementById('timer-display').innerText = `⏱️ TIME: ${min}:${sec < 10 ? '0' : ''}${sec}`;
     });
+
+    function openRuleModal() { document.getElementById('rule-modal').classList.add('open'); }
+    function closeRuleModal() { document.getElementById('rule-modal').classList.remove('open'); }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -472,40 +350,34 @@
     }
 
     socket.on('updateRoom', (room) => {
-        currentRoom = room;
         const list = document.getElementById('player-list');
         list.innerHTML = '';
         Object.values(room.players).forEach(p => {
             list.innerHTML += `
                 <div class="player-card">
-                    <div class="player-info">
-                        <img src="${p.avatar || ''}" class="avatar-img">
-                        <span style="font-weight:700;">${p.name}</span>
-                    </div>
+                    <div class="player-info"><span style="font-weight:700;">${p.name}</span></div>
                 </div>`;
         });
     });
 
-    function startGame() {
-        socket.emit('startGame', { selectedRoles: ['人狼', '占い師', '騎士（狩人）'], dayTimeLimit: 180 });
-    }
+    function startGame() { socket.emit('startGame'); }
 
     socket.on('gameStarted', (room) => {
-        currentRoom = room;
         myRole = room.players[myId].role;
         document.getElementById('my-role').innerText = myRole;
         showScreen('screen-game');
         renderNightPhase(room);
     });
 
+    // 🌙 夜描画 (市民向けの案内メッセージを追加)
     function renderNightPhase(room) {
-        isNight = true;
         document.getElementById('phase-title').innerText = "🌙 夜の行動";
         
-        let desc = "能力者は対象を選択してください。";
+        let desc = "能力者が行動中…しばらくお待ちください。";
         if (myRole === '人狼') desc = "襲撃相手を選択してください。";
         else if (myRole === '占い師') desc = "占う相手を選択してください。";
-        else if (myRole === '騎士（狩人）') desc = "護衛相手を選択してください。";
+        else if (myRole === '騎士') desc = "護衛相手を選択してください。";
+        
         document.getElementById('phase-desc').innerText = desc;
 
         const list = document.getElementById('game-player-list');
@@ -514,15 +386,12 @@
         Object.values(room.players).forEach(p => {
             if (!p.isAlive) return;
             let btnHtml = '';
-            if (p.id !== myId && ['人狼', '占い師', '騎士（狩人）'].includes(myRole)) {
+            if (p.id !== myId && ['人狼', '占い師', '騎士'].includes(myRole)) {
                 btnHtml = `<button class="action-btn" onclick="sendNightAction('${p.id}')">選択</button>`;
             }
             list.innerHTML += `
                 <div class="player-card">
-                    <div class="player-info">
-                        <img src="${p.avatar || ''}" class="avatar-img">
-                        <span style="font-weight:700;">${p.name}</span>
-                    </div>
+                    <span style="font-weight:700;">${p.name}</span>
                     ${btnHtml}
                 </div>`;
         });
@@ -534,54 +403,27 @@
         document.getElementById('game-player-list').innerHTML = '';
     }
 
+    // ☀️ 昼描画
     socket.on('startDay', ({ room, killedIds }) => {
-        isNight = false;
-        currentRoom = room;
         document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
         
         let msg = killedIds && killedIds.length > 0 
             ? `${killedIds.map(id => room.players[id].name).join(', ')} さんが犠牲になりました。`
             : "昨夜は誰も死にませんでした。";
-        document.getElementById('phase-desc').innerText = msg + " 追放投票を行ってください。";
+        document.getElementById('phase-desc').innerText = msg;
 
         const list = document.getElementById('game-player-list');
         list.innerHTML = '';
-        const isMyAlive = room.players[myId].isAlive;
 
         Object.values(room.players).forEach(p => {
-            let btnHtml = '';
-            if (isMyAlive && p.isAlive && p.id !== myId) {
-                btnHtml = `<button class="action-btn" onclick="sendVote('${p.id}')">投票</button>`;
-            }
             list.innerHTML += `
                 <div class="player-card ${!p.isAlive ? 'dead' : ''}">
-                    <div class="player-info">
-                        <img src="${p.avatar || ''}" class="avatar-img">
-                        <span style="font-weight:700;">${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>
-                    </div>
-                    ${btnHtml}
+                    <span style="font-weight:700;">${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>
                 </div>`;
         });
     });
 
-    function sendVote(targetId) {
-        socket.emit('castVote', { targetId });
-        document.getElementById('phase-desc').innerText = "投票しました。結果を待っています...";
-        document.getElementById('game-player-list').innerHTML = '';
-    }
-
-    socket.on('startNight', ({ room }) => {
-        currentRoom = room;
-        renderNightPhase(room);
-    });
-
-    socket.on('gameOver', ({ winner }) => {
-        isNight = false;
-        showScreen('screen-result');
-        document.getElementById('winner-text').innerText = `${winner} の勝利！`;
-        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-    });
-
+    // 💬 チャット送信機能
     function sendChat() {
         const text = document.getElementById('chat-input').value.trim();
         const type = document.getElementById('chat-type').value;
@@ -590,21 +432,14 @@
         document.getElementById('chat-input').value = '';
     }
 
+    // 💬 チャット受信機能
     socket.on('chatMessage', ({ sender, text }) => {
         const box = document.getElementById('chat-box');
         box.innerHTML += `<div class="chat-msg"><b>${sender}:</b> ${text}</div>`;
         box.scrollTop = box.scrollHeight;
     });
 
-    function buyItem(itemId, cost) {
-        if (userPT < cost) return alert('PT不足です');
-        userPT -= cost;
-        updatePTDisplay();
-        alert('購入完了！');
-    }
-
-    function login() { alert('ログイン完了'); showScreen('screen-lobby'); }
-    function register() { alert('登録完了'); showScreen('screen-lobby'); }
+    function buyItem(itemId, cost) { alert('購入機能'); }
 </script>
 </body>
 </html>
