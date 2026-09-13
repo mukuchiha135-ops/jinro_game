@@ -184,6 +184,7 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="container">
+    <!-- ナビゲーションバー -->
     <div class="navbar">
         <div class="user-info">
             <img id="my-avatar" class="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest">
@@ -199,10 +200,12 @@
         </div>
     </div>
 
+    <!-- メインレイアウト -->
     <div class="main-layout">
         <div class="game-panel">
             <h1 class="app-title">ONLINE JINRO</h1>
 
+            <!-- 1. ロビースクリーン -->
             <div id="screen-lobby" class="screen active">
                 <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
                     <button class="btn-gold" onclick="joinRandomRoom()">🎲 QUICK JOIN (ランダム部屋に入室)</button>
@@ -213,6 +216,7 @@
                 </div>
             </div>
 
+            <!-- 2. 待機部屋スクリーン -->
             <div id="screen-room" class="screen">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h2>ROOM: <span id="display-room" style="color: var(--accent-cyan); font-family: 'Orbitron';"></span></h2>
@@ -233,6 +237,7 @@
                 </div>
             </div>
 
+            <!-- 3. ゲーム画面 -->
             <div id="screen-game" class="screen">
                 <div class="status-header">
                     <div>
@@ -245,6 +250,13 @@
                 <div style="text-align: center; margin: 10px 0;">
                     <h3 id="phase-title" style="color: var(--accent-cyan);">進行中...</h3>
                     <p id="phase-desc" style="font-size: 0.8rem; color: var(--text-muted);"></p>
+                </div>
+
+                <!-- 🗳️ 投票スキップボタン専用エリア -->
+                <div id="skip-vote-area" style="display: none; text-align: center; margin-bottom: 12px;">
+                    <button class="btn-secondary vote-skip-btn" style="max-width: 250px; border-color: var(--accent-gold); color: var(--accent-gold);" onclick="castVote('skip')">
+                        ⏩ 投票をスキップする (スキップに投票)
+                    </button>
                 </div>
 
                 <div id="game-player-grid" class="player-grid"></div>
@@ -294,7 +306,7 @@
         <h2 style="color: var(--accent-cyan); margin-bottom: 12px; text-align: center;">📖 人狼ゲームのルール</h2>
         <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-main); margin-bottom: 16px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px;">
             <p><b>【概要】</b> 市民陣営と人狼陣営に分かれて戦う正体隠匿ゲームです。</p>
-            <p><b>昼のターン:</b> 全員で議論し、投票で人狼を追放します。</p>
+            <p><b>昼のターン:</b> 全員で議論し、投票で人狼を追放します（スキップも可能）。</p>
             <p><b>夜のターン:</b> 能力者が行動を起こし、人狼が襲撃対象を選びます。</p>
         </div>
 
@@ -327,8 +339,8 @@
     let myId = null;
     let myRole = '市民';
     let currentUser = null;
-    let hasActedNight = false; // 夜の行動フラグ
-    let hasVotedDay = false;  // 昼の投票フラグ
+    let hasActedNight = false; // 夜行動フラグ
+    let hasVotedDay = false;  // 昼投票フラグ
 
     const ROLE_MASTER = [
         { id: 'citizen', name: '市民', icon: '👱‍♂️', desc: '能力なし。議論と推理で人狼を探す。' },
@@ -483,10 +495,10 @@
 
     /* 🌙 夜のターン処理 */
     socket.on('startNight', ({ room }) => {
-        hasActedNight = false; // 夜の行動フラグをリセット
+        hasActedNight = false;
+        document.getElementById('skip-vote-area').style.display = 'none'; // スキップエリア非表示
         document.getElementById('phase-title').innerText = "🌙 夜の行動";
         
-        // 役職に応じた説明テキストの設定
         const roleTextMap = {
             '人狼': '襲撃するプレイヤーを1人選択してください。',
             '占い師': '占うプレイヤーを1人選択してください。',
@@ -505,12 +517,10 @@
             if (!p.isAlive) return '';
 
             let actionBtn = '';
-            // 自分の能力で選択可能な対象の場合にボタンを生成（行動前のみ）
             if (!hasActedNight && isActionableRole) {
                 if (myRole === '人狼' && p.role === '人狼') {
-                    // 人狼は仲間を襲撃不可
+                    // 人狼同士の誤爆防止
                 } else if (p.id !== myId || myRole === '騎士') {
-                    // 占い師・人狼は自分不可、騎士は自分護衛可
                     let btnText = '選択';
                     if (myRole === '人狼') btnText = '襲撃';
                     if (myRole === '占い師') btnText = '占う';
@@ -531,20 +541,23 @@
 
     function sendNightAction(targetId) {
         if (hasActedNight) return;
-        hasActedNight = true; // 行動済みフラグを立てる
+        hasActedNight = true;
 
         socket.emit('nightAction', { targetId, role: myRole });
         document.getElementById('phase-desc').innerText = "✅ 行動を確定しました。他のプレイヤーを待っています…";
 
-        // ボタンをUI上からすべて削除
         document.querySelectorAll('.action-btn').forEach(btn => btn.remove());
     }
 
     /* ☀️ 昼のターン処理 */
     socket.on('startDay', ({ room }) => {
-        hasVotedDay = false; // 投票フラグをリセット
+        hasVotedDay = false;
         document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
-        document.getElementById('phase-desc').innerText = "追放したいプレイヤーを選択して投票してください。";
+        document.getElementById('phase-desc').innerText = "追放したいプレイヤーを選択するか、スキップを行ってください。";
+
+        const isMeAlive = room.players[myId]?.isAlive;
+        // 生存中のプレイヤーのみスキップボタンを表示
+        document.getElementById('skip-vote-area').style.display = isMeAlive ? 'block' : 'none';
 
         renderDayGrid(room);
     });
@@ -555,7 +568,6 @@
 
         grid.innerHTML = Object.values(room.players).map(p => {
             let voteBtn = '';
-            // 生存しており、投票前で、自分以外の生きているプレイヤーのみ投票可
             if (isMeAlive && p.isAlive && p.id !== myId && !hasVotedDay) {
                 voteBtn = `<button class="vote-btn btn-red" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="castVote('${p.id}')">投票</button>`;
             }
@@ -570,15 +582,22 @@
         }).join('');
     }
 
+    /* 🗳️ 投票＆スキップ送信機能 */
     function castVote(targetId) {
         if (hasVotedDay) return;
-        hasVotedDay = true; // 投票済みフラグを立てる
+        hasVotedDay = true;
 
         socket.emit('castVote', { targetId });
-        document.getElementById('phase-desc').innerText = "✅ 投票が完了しました。集計を待っています…";
 
-        // ボタンをUI上からすべて即時削除
+        if (targetId === 'skip') {
+            document.getElementById('phase-desc').innerText = "⏩ スキップに投票しました。結果を待っています…";
+        } else {
+            document.getElementById('phase-desc').innerText = "✅ 投票が完了しました。集計を待っています…";
+        }
+
+        // プレイヤー指定の投票ボタンとスキップボタンを画面から同時に除去
         document.querySelectorAll('.vote-btn').forEach(btn => btn.remove());
+        document.getElementById('skip-vote-area').style.display = 'none';
     }
 
     socket.on('chatMessage', ({ sender, text, type }) => {
@@ -600,6 +619,7 @@
     }
 
     socket.on('gameOver', ({ winner, message }) => {
+        document.getElementById('skip-vote-area').style.display = 'none';
         document.getElementById('phase-title').innerText = "🎉 GAME OVER";
         document.getElementById('phase-desc').innerText = message;
         if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
