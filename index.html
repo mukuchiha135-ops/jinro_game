@@ -184,7 +184,6 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="container">
-    <!-- ナビゲーションバー -->
     <div class="navbar">
         <div class="user-info">
             <img id="my-avatar" class="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest">
@@ -200,7 +199,6 @@
         </div>
     </div>
 
-    <!-- メインレイアウト -->
     <div class="main-layout">
         <div class="game-panel">
             <h1 class="app-title">ONLINE JINRO</h1>
@@ -252,7 +250,6 @@
                     <p id="phase-desc" style="font-size: 0.8rem; color: var(--text-muted);"></p>
                 </div>
 
-                <!-- 🗳️ 投票スキップボタン専用エリア -->
                 <div id="skip-vote-area" style="display: none; text-align: center; margin-bottom: 12px;">
                     <button class="btn-secondary vote-skip-btn" style="max-width: 250px; border-color: var(--accent-gold); color: var(--accent-gold);" onclick="castVote('skip')">
                         ⏩ 投票をスキップする (スキップに投票)
@@ -339,8 +336,8 @@
     let myId = null;
     let myRole = '市民';
     let currentUser = null;
-    let hasActedNight = false; // 夜行動フラグ
-    let hasVotedDay = false;  // 昼投票フラグ
+    let hasActedNight = false;
+    let hasVotedDay = false;
 
     const ROLE_MASTER = [
         { id: 'citizen', name: '市民', icon: '👱‍♂️', desc: '能力なし。議論と推理で人狼を探す。' },
@@ -359,7 +356,9 @@
 
     const roleCounts = { citizen: 1, wolf: 1, seer: 1, medium: 0, guard: 1, hunter: 0, lover: 0, vampire: 0, schizoid: 0, psycho: 0, madman: 0, freemason: 0 };
 
-    socket.on('connect', () => { myId = socket.id; });
+    socket.on('connect', () => { 
+        myId = socket.id; 
+    });
 
     (function initCanvas() {
         const canvas = document.getElementById('bg-canvas');
@@ -455,23 +454,32 @@
     }
     renderRoleCounters();
 
-    function joinRandomRoom() { socket.emit('joinRandomRoom', { user: currentUser }); showScreen('screen-room'); }
+    /* 🚪 ルーム入室・修正処理 */
+    function joinRandomRoom() { 
+        socket.emit('joinRandomRoom', { user: currentUser }); 
+    }
+
     function joinRoom() {
         const roomCode = document.getElementById('room-code').value.trim();
         if (!roomCode) return alert('部屋IDを入力してください');
         socket.emit('joinRoom', { roomCode, user: currentUser });
-        showScreen('screen-room');
-        document.getElementById('display-room').innerText = roomCode;
     }
 
+    // サーバーから最新の部屋情報を受信した時に画面遷移
     socket.on('updateRoom', (room) => {
+        if (!room || !room.players) return;
+
+        // 部屋画面へ切り替え
+        showScreen('screen-room');
+        document.getElementById('display-room').innerText = room.id || '';
+
         const grid = document.getElementById('player-grid-room');
         const players = Object.values(room.players);
         document.getElementById('player-count-badge').innerText = `参加者: ${players.length}人`;
 
         grid.innerHTML = players.map(p => `
             <div class="player-card">
-                <img class="p-avatar" src="${p.avatar}">
+                <img class="p-avatar" src="${p.avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=Guest'}">
                 <div class="p-name">${p.name} ${p.id === room.hostId ? '👑' : ''}</div>
             </div>
         `).join('');
@@ -479,10 +487,16 @@
         document.getElementById('host-controls').style.display = (myId === room.hostId) ? 'block' : 'none';
     });
 
+    // 部屋入室エラーハンドリング
+    socket.on('errorMsg', (msg) => {
+        alert(msg);
+        showScreen('screen-lobby');
+    });
+
     function startGame() { socket.emit('startGame', { customRoles: roleCounts }); }
 
     socket.on('gameStarted', (room) => {
-        myRole = room.players[myId].role;
+        myRole = room.players[myId]?.role || '市民';
         document.getElementById('my-role').innerText = myRole;
         showScreen('screen-game');
     });
@@ -496,7 +510,7 @@
     /* 🌙 夜のターン処理 */
     socket.on('startNight', ({ room }) => {
         hasActedNight = false;
-        document.getElementById('skip-vote-area').style.display = 'none'; // スキップエリア非表示
+        document.getElementById('skip-vote-area').style.display = 'none';
         document.getElementById('phase-title').innerText = "🌙 夜の行動";
         
         const roleTextMap = {
@@ -519,7 +533,7 @@
             let actionBtn = '';
             if (!hasActedNight && isActionableRole) {
                 if (myRole === '人狼' && p.role === '人狼') {
-                    // 人狼同士の誤爆防止
+                    // 人狼同士はスキップ
                 } else if (p.id !== myId || myRole === '騎士') {
                     let btnText = '選択';
                     if (myRole === '人狼') btnText = '襲撃';
@@ -556,7 +570,6 @@
         document.getElementById('phase-desc').innerText = "追放したいプレイヤーを選択するか、スキップを行ってください。";
 
         const isMeAlive = room.players[myId]?.isAlive;
-        // 生存中のプレイヤーのみスキップボタンを表示
         document.getElementById('skip-vote-area').style.display = isMeAlive ? 'block' : 'none';
 
         renderDayGrid(room);
@@ -582,7 +595,6 @@
         }).join('');
     }
 
-    /* 🗳️ 投票＆スキップ送信機能 */
     function castVote(targetId) {
         if (hasVotedDay) return;
         hasVotedDay = true;
@@ -595,7 +607,6 @@
             document.getElementById('phase-desc').innerText = "✅ 投票が完了しました。集計を待っています…";
         }
 
-        // プレイヤー指定の投票ボタンとスキップボタンを画面から同時に除去
         document.querySelectorAll('.vote-btn').forEach(btn => btn.remove());
         document.getElementById('skip-vote-area').style.display = 'none';
     }
