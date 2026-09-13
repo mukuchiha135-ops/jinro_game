@@ -2,429 +2,308 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONLINE JINRO - Ultimate Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONLINE JINRO - Grand Master Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --bg-color: #0f141c;
-            --panel-bg: #1a222d;
-            --accent-red: #ff4757;
-            --accent-blue: #70a1ff;
-            --accent-gold: #ffa502;
-            --accent-green: #2ed573;
-            --accent-purple: #9b59b6;
-            --border-color: #2f3640;
-            --text-color: #f1f2f6;
+            --bg-color: #06080e;
+            --panel-bg: rgba(15, 21, 33, 0.88);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --accent-red: #ff2a5f;
+            --accent-blue: #00f0ff;
+            --accent-gold: #ffb703;
+            --accent-purple: #a855f7;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --glow-red: 0 0 20px rgba(255, 42, 95, 0.5);
+            --glow-blue: 0 0 20px rgba(0, 240, 255, 0.5);
+            --glow-gold: 0 0 20px rgba(255, 183, 3, 0.5);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Noto Sans JP', sans-serif;
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            padding: 20px 10px;
+            padding: 12px 8px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景パーティクル用 Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .container {
             width: 100%;
-            max-width: 1100px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* --- ナビゲーションバー（ユーザー情報・PT） --- */
-        .navbar {
-            background: var(--panel-bg);
-            padding: 12px 20px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .avatar-img {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            border: 2px solid var(--accent-blue);
-            background: #252d38;
-            object-fit: cover;
-        }
-
-        .pt-badge {
-            background: var(--accent-gold);
-            color: #000;
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
-
-        /* --- レイアウト構造 --- */
-        .main-layout {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        @media (min-width: 850px) {
-            .main-layout {
-                flex-direction: row;
-            }
-        }
-
-        .game-panel {
-            flex: 2;
-            background: var(--panel-bg);
-            padding: 24px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-        }
-
-        .side-panel {
-            flex: 1;
+            max-width: 1150px;
             display: flex;
             flex-direction: column;
             gap: 16px;
+            z-index: 1;
         }
 
-        .card-box {
+        /* --- ナビゲーション --- */
+        .navbar {
             background: var(--panel-bg);
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            padding: 12px 18px;
+            border-radius: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
         }
 
-        /* --- 汎用フォーム・ボタン --- */
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar-img {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 2px solid var(--accent-blue); background: #1e293b; object-fit: cover;
+            box-shadow: var(--glow-blue);
+        }
+
+        .pt-badge {
+            background: linear-gradient(135deg, #ffb703, #fb8500); color: #000;
+            font-weight: 900; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;
+            box-shadow: var(--glow-gold);
+        }
+
+        /* --- メインレイアウト --- */
+        .main-layout { display: flex; flex-direction: column; gap: 16px; }
+        @media (min-width: 880px) {
+            .main-layout { flex-direction: row; }
+        }
+
+        .game-panel {
+            flex: 2.5; background: var(--panel-bg); backdrop-filter: blur(20px);
+            padding: 24px; border-radius: 24px; border: 1px solid var(--panel-border);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); position: relative; overflow: hidden;
+        }
+
+        .game-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--accent-red), var(--accent-purple), var(--accent-blue));
+        }
+
+        .side-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+        .card-box {
+            background: var(--panel-bg); backdrop-filter: blur(16px);
+            padding: 18px; border-radius: 20px; border: 1px solid var(--panel-border);
+        }
+
         h1 {
-            color: var(--accent-red);
-            text-align: center;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
+            font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900;
+            text-align: center; background: linear-gradient(90deg, #ff2a5f, #00f0ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 3px; margin-bottom: 20px;
         }
 
+        /* --- UI要素 --- */
         input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 6px 0 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: #12171f;
-            color: #fff;
-            font-size: 0.95rem;
+            width: 100%; padding: 12px 14px; margin: 6px 0 12px; border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(8, 12, 20, 0.85);
+            color: #fff; font-size: 0.9rem; transition: border 0.3s;
         }
 
         input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-blue);
+            outline: none; border-color: var(--accent-blue); box-shadow: var(--glow-blue);
         }
 
         button {
-            width: 100%;
-            padding: 12px;
-            margin: 6px 0;
-            border-radius: 8px;
-            border: none;
-            background: var(--accent-red);
-            color: #fff;
-            font-weight: bold;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            width: 100%; padding: 12px; margin: 4px 0; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, var(--accent-red), #e11d48);
+            color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.2s ease; box-shadow: var(--glow-red);
         }
 
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-secondary { background: #3a4754; }
-        .btn-green { background: var(--accent-green); }
-        .btn-gold { background: var(--accent-gold); color: #000; }
-        .btn-purple { background: var(--accent-purple); }
+        button:active { transform: scale(0.98); }
+        .btn-secondary { background: linear-gradient(135deg, #334155, #1e293b); box-shadow: none; }
+        .btn-gold { background: linear-gradient(135deg, #ffb703, #fb8500); color: #000; box-shadow: var(--glow-gold); }
+        .btn-purple { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); }
+        .action-btn {
+            background: linear-gradient(135deg, var(--accent-blue), #0284c7);
+            color: #000; font-weight: 900; width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0;
+            box-shadow: var(--glow-blue);
+        }
 
         .screen { display: none; }
-        .active { display: block; }
+        .active { display: block; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- 配役グリッド --- */
-        .preset-btns {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
+        /* --- 3D カードフリップ (役職確認用) --- */
+        .card-container {
+            perspective: 1000px; width: 100%; max-width: 220px; height: 110px;
+            margin: 12px auto; cursor: pointer;
         }
-        .preset-btn { background: #2f3640; font-size: 0.8rem; padding: 8px; margin: 0; }
-
-        .role-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 8px;
-            background: #12171f;
-            padding: 12px;
-            border-radius: 10px;
-            margin: 12px 0;
+        .flipper {
+            width: 100%; height: 100%; transition: 0.6s transform;
+            transform-style: preserve-3d; position: relative;
         }
-        .role-item { display: flex; align-items: center; font-size: 0.85rem; cursor: pointer; }
-        .role-item input { width: auto; margin-right: 8px; }
-
-        /* --- プレイヤーカード --- */
-        .player-card {
-            background: #232c38;
-            padding: 10px 14px;
-            margin: 8px 0;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-left: 4px solid var(--accent-blue);
+        .card-container.flipped .flipper { transform: rotateY(180deg); }
+        .card-front, .card-back {
+            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
+            border-radius: 14px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; border: 1px solid var(--accent-gold);
+            box-shadow: var(--glow-gold);
         }
-        .player-info { display: flex; align-items: center; gap: 10px; }
-        .dead { opacity: 0.4; filter: grayscale(100%); border-left-color: #747d8c; }
+        .card-front { background: rgba(15, 23, 42, 0.95); }
+        .card-back { background: linear-gradient(135deg, #1e1b4b, #311042); transform: rotateY(180deg); }
 
         /* --- タイマー --- */
         .timer-box {
-            background: linear-gradient(135deg, #2b323d, #191f28);
-            padding: 14px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--accent-gold);
-            margin-bottom: 16px;
-            border: 1px solid var(--accent-gold);
-            box-shadow: 0 0 15px rgba(255, 165, 2, 0.15);
+            background: rgba(10, 15, 26, 0.9); padding: 14px; border-radius: 16px;
+            text-align: center; font-family: 'Orbitron', sans-serif; font-size: 1.5rem;
+            font-weight: 900; color: var(--accent-gold); margin-bottom: 16px;
+            border: 1px solid var(--accent-gold); box-shadow: var(--glow-gold); letter-spacing: 2px;
         }
 
-        /* --- ショップ＆アイテム --- */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
-            margin-top: 15px;
+        /* --- プレイヤーカード --- */
+        .player-card {
+            background: rgba(26, 36, 52, 0.7); padding: 12px 16px; margin: 8px 0;
+            border-radius: 14px; display: flex; align-items: center; justify-content: space-between;
+            border-left: 4px solid var(--accent-blue); border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s;
         }
-        .shop-card {
-            background: #12171f;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-        .item-icon { font-size: 2.5rem; margin-bottom: 8px; }
-
-        .item-box {
-            background: rgba(155, 89, 182, 0.15);
-            border: 1px dashed var(--accent-purple);
-            padding: 12px;
-            border-radius: 10px;
-            margin: 12px 0;
-            text-align: center;
-        }
+        .player-card:hover { transform: translateX(4px); }
+        .dead { opacity: 0.35; filter: grayscale(100%); border-left-color: #64748b !important; }
 
         /* --- チャットログ --- */
         #chat-box {
-            background: #12171f;
-            height: 180px;
-            overflow-y: auto;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 12px;
-            border: 1px solid var(--border-color);
+            background: rgba(8, 12, 20, 0.95); height: 170px; overflow-y: auto;
+            padding: 12px; border-radius: 14px; margin-top: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem;
         }
-        .chat-msg { margin-bottom: 6px; font-size: 0.85rem; }
-        .chat-wolf { color: var(--accent-red); }
-        .chat-share { color: var(--accent-blue); }
-        .chat-co { color: var(--accent-gold); font-weight: bold; background: rgba(255, 165, 2, 0.1); padding: 2px 6px; border-radius: 4px; }
+        .chat-msg { margin-bottom: 6px; padding: 4px 8px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
+<!-- バックグラウンド・パーティクル用 Canvas -->
+<canvas id="bg-canvas"></canvas>
+
 <div class="container">
-    <!-- ナビゲーションバー -->
     <div class="navbar">
         <div class="user-info">
             <img id="my-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Player1" class="avatar-img" alt="Avatar">
             <div>
-                <div id="nav-username" style="font-weight: bold;">ゲストプレイヤー</div>
+                <div id="nav-username" style="font-weight: 700; font-size: 0.95rem;">ゲスト</div>
                 <span class="pt-badge">🪙 <span id="user-pt">500</span> PT</span>
             </div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <button class="btn-gold" style="width: auto; padding: 6px 14px;" onclick="showScreen('screen-shop')">🛒 ショップ</button>
-            <button class="btn-secondary" style="width: auto; padding: 6px 14px;" onclick="showScreen('screen-auth')">🔐 ログイン</button>
+            <button class="btn-gold" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-shop')">🛒</button>
+            <button class="btn-secondary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-auth')">🔐</button>
         </div>
     </div>
 
-    <!-- メインレイアウト -->
     <div class="main-layout">
         <div class="game-panel">
             <h1>ONLINE JINRO</h1>
 
-            <!-- 1. ログイン/サインイン画面 -->
+            <!-- 1. 認証画面 -->
             <div id="screen-auth" class="screen">
-                <h2>🔐 サインイン / ログイン</h2>
+                <h2>🔐 アカウントログイン</h2>
                 <input type="email" id="auth-email" placeholder="メールアドレス">
                 <input type="password" id="auth-pass" placeholder="パスワード">
                 <button onclick="login()">ログイン</button>
-                <button class="btn-secondary" onclick="register()">新規会員登録</button>
+                <button class="btn-secondary" onclick="register()">新規登録</button>
                 <button class="btn-gold" onclick="showScreen('screen-lobby')">ゲストとして続行</button>
             </div>
 
-            <!-- 2. ロビー画面（ランダム/プライベート対応） -->
+            <!-- 2. ロビー画面 -->
             <div id="screen-lobby" class="screen active">
-                <h2>🎮 ゲームに参加</h2>
-                <input type="text" id="player-name" placeholder="表示名を入力" value="名無し">
-
-                <div style="margin: 20px 0;">
-                    <button class="btn-purple" onclick="joinRandomRoom()">🎲 ランダムマッチ（グローバル部屋）に入る</button>
-                    <p style="text-align: center; font-size: 0.8rem; color: #888; margin: 10px 0;">またはプライベート部屋を作成</p>
-                    <input type="text" id="room-code" placeholder="部屋番号を入力 (例: 7777)">
-                    <button onclick="joinRoom()">プライベート部屋に入る / 作成</button>
+                <h2>🎮 ロビー</h2>
+                <input type="text" id="player-name" placeholder="プレイヤー名" value="名無し">
+                <div style="margin: 18px 0;">
+                    <button class="btn-purple" style="padding: 14px;" onclick="joinRandomRoom()">🎲 Quick Join (ランダム対戦)</button>
+                    <p style="text-align: center; font-size: 0.8rem; color: var(--text-sub); margin: 12px 0;">またはプライベートIDで参加</p>
+                    <input type="text" id="room-code" placeholder="部屋ID (例: 7777)">
+                    <button onclick="joinRoom()">部屋を作成 / 入室</button>
                 </div>
             </div>
 
-            <!-- 3. ポイントショップ画面 -->
+            <!-- 3. ショップ画面 -->
             <div id="screen-shop" class="screen">
                 <h2>🛒 ポイントショップ</h2>
-                <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 10px;">貯めたPTで1ゲーム限定アイテムや限定アイコンを購入できます。</p>
-                
-                <h3 style="margin-top: 15px; color: var(--accent-gold);">🔮 限定アイテム (1ゲーム1回のみ使用可)</h3>
-                <div class="shop-grid">
-                    <div class="shop-card">
-                        <div class="item-icon">🔮</div>
-                        <strong>水晶玉</strong>
-                        <p style="font-size: 0.75rem; color: #aaa; margin: 4px 0;">対象の陣営を見破る</p>
-                        <button class="btn-gold" onclick="buyItem('crystal', 200)">200 PTで購入</button>
-                    </div>
-                    <div class="shop-card">
-                        <div class="item-icon">🧸</div>
-                        <strong>身代わり人形</strong>
-                        <p style="font-size: 0.75rem; color: #aaa; margin: 4px 0;">襲撃を1度自動ガード</p>
-                        <button class="btn-gold" onclick="buyItem('doll', 300)">300 PTで購入</button>
-                    </div>
-                    <div class="shop-card">
-                        <div class="item-icon">📢</div>
-                        <strong>説得のメガホン</strong>
-                        <p style="font-size: 0.75rem; color: #aaa; margin: 4px 0;">投票数が2票分になる</p>
-                        <button class="btn-gold" onclick="buyItem('megaphone', 150)">150 PTで購入</button>
-                    </div>
-                </div>
-
-                <h3 style="margin-top: 20px; color: var(--accent-blue);">🖼️ 限定アバター</h3>
-                <div class="shop-grid">
-                    <div class="shop-card">
-                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=WolfMaster" style="width:50px; height:50px;" alt="Wolf">
-                        <br><strong>メカ人狼</strong>
-                        <button class="btn-gold" onclick="buyAvatar('WolfMaster', 500)" style="margin-top:8px;">500 PT</button>
-                    </div>
-                    <div class="shop-card">
-                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Shadow" style="width:50px; height:50px;" alt="Shadow">
-                        <br><strong>シャドウ</strong>
-                        <button class="btn-gold" onclick="buyAvatar('Shadow', 500)" style="margin-top:8px;">500 PT</button>
-                    </div>
-                </div>
-
-                <button class="btn-secondary" style="margin-top: 20px;" onclick="showScreen('screen-lobby')">ロビーに戻る</button>
+                <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 12px;">対戦で使えるアイテムを購入できます。</p>
+                <button class="btn-gold" onclick="buyItem('crystal', 200)">🔮 水晶玉 (200 PT)</button>
+                <button class="btn-gold" style="margin-top: 8px;" onclick="buyItem('doll', 300)">🧸 身代わり人形 (300 PT)</button>
+                <button class="btn-secondary" style="margin-top: 18px;" onclick="showScreen('screen-lobby')">ロビーに戻る</button>
             </div>
 
             <!-- 4. 待機部屋 -->
             <div id="screen-room" class="screen">
-                <h2>ROOM: <span id="display-room" style="color: var(--accent-blue);"></span></h2>
-                
-                <div style="margin-top: 15px;">
-                    <label style="font-size:0.85rem; color:#a4b0be;">⚡ 配役推奨セット:</label>
-                    <div class="preset-btns">
-                        <button class="preset-btn" onclick="applyPreset('small')">少人数 (4~6)</button>
-                        <button class="preset-btn" onclick="applyPreset('medium')">中人数 (7~9)</button>
-                        <button class="preset-btn" onclick="applyPreset('large')">大人数 (10~)</button>
+                <h2>ROOM: <span id="display-room" style="color: var(--accent-blue); font-family: 'Orbitron';"></span></h2>
+                <div id="player-list"></div>
+                <button onclick="startGame()" style="margin-top: 16px;">ゲームスタート</button>
+            </div>
+
+            <!-- 5. ゲーム画面 -->
+            <div id="screen-game" class="screen">
+                <div id="timer-display" class="timer-box">⏱️ TIME: --:--</div>
+
+                <!-- 3D 役職裏返しカード -->
+                <div class="card-container" onclick="this.classList.toggle('flipped')">
+                    <div class="flipper">
+                        <div class="card-front">
+                            <span style="font-size: 0.8rem; color: var(--text-sub);">タップで役職を表示</span>
+                            <span style="font-size: 1.4rem;">🎴</span>
+                        </div>
+                        <div class="card-back">
+                            <span style="font-size: 0.75rem; color: var(--text-sub);">あなたの配役</span>
+                            <strong id="my-role" style="font-size: 1.2rem; color: var(--accent-gold);">?</strong>
+                        </div>
                     </div>
                 </div>
 
-                <div class="role-grid">
-                    <label class="role-item"><input type="checkbox" class="role-chk" value="人狼" checked disabled>人狼</label>
-                    <label class="role-item"><input type="checkbox" class="role-chk" value="占い師" checked>占い師</label>
-                    <label class="role-item"><input type="checkbox" class="role-chk" value="霊媒師" checked>霊媒師</label>
-                    <label class="role-item"><input type="checkbox" class="role-chk" value="騎士（狩人）" checked>騎士</label>
-                    <label class="role-item"><input type="checkbox" class="role-chk" value="ハンター">ハンター</label>
-                    <label class="role-item"><input type="checkbox" class="role-chk" value="狂人">狂人</label>
-                </div>
-
-                <div style="margin: 10px 0;">
-                    <label style="font-size:0.85rem; color:#a4b0be;">⏱️ 議論時間:</label>
-                    <select id="time-limit">
-                        <option value="60">1分</option>
-                        <option value="120">2分</option>
-                        <option value="180" selected>3分</option>
-                        <option value="300">5分</option>
-                    </select>
-                </div>
-
-                <p style="margin:10px 0; color:#a4b0be; font-size:0.9rem;">参加メンバー:</p>
-                <div id="player-list"></div>
-                <button onclick="startGame()" style="margin-top:15px;">ゲームを開始</button>
-            </div>
-
-            <!-- 5. ゲームメイン画面 -->
-            <div id="screen-game" class="screen">
-                <div id="timer-display" class="timer-box">⏱️ 議論時間: --:--</div>
-
-                <!-- 装備中アイテム表示/発動枠 -->
-                <div class="item-box">
-                    <span style="font-weight: bold;">🎒 装備中アイテム:</span>
-                    <span id="equipped-item-name">なし</span>
-                    <button id="use-item-btn" class="btn-purple" style="width: auto; padding: 4px 12px; margin-left: 10px; display: none;" onclick="useEquippedItem()">使用する (残り1回)</button>
-                </div>
-
-                <div style="background:#12171f; padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
-                    あなたの役職: <span id="my-role" style="color:var(--accent-gold); font-weight:bold;">?</span>
-                    <div id="result-notify" style="margin-top:6px; color:var(--accent-blue); font-size:0.85rem;"></div>
-                </div>
-
-                <h3 id="phase-title" style="color:var(--accent-gold); text-align:center;">進行中...</h3>
-                <p id="phase-desc" style="text-align:center; font-size:0.85rem; color:#a4b0be; margin-bottom:12px;"></p>
+                <h3 id="phase-title" style="color: var(--accent-gold); text-align: center; margin-top: 8px;">進行中...</h3>
+                <p id="phase-desc" style="text-align: center; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 12px;"></p>
 
                 <div id="game-player-list"></div>
 
-                <!-- チャット機能 -->
                 <div id="chat-box"></div>
                 <div style="display: flex; gap: 8px; margin-top: 8px;">
-                    <select id="chat-type" style="width: 100px; margin:0;">
+                    <select id="chat-type" style="width: 90px; margin:0;">
                         <option value="all">全体</option>
                         <option value="wolf">人狼</option>
                     </select>
-                    <input type="text" id="chat-input" placeholder="メッセージを入力..." style="margin:0;">
-                    <button onclick="sendChat()" style="width: 80px; margin:0;">送信</button>
+                    <input type="text" id="chat-input" placeholder="メッセージ..." style="margin:0;">
+                    <button onclick="sendChat()" style="width: 75px; margin:0;">送信</button>
                 </div>
             </div>
 
             <!-- 6. 結果画面 -->
-            <div id="screen-result" class="screen" style="text-align:center;">
-                <h2 id="winner-text" style="color:var(--accent-red); font-size:2rem; margin-bottom:20px;"></h2>
-                <button onclick="location.reload()">ロビーに戻る</button>
+            <div id="screen-result" class="screen" style="text-align: center; padding: 20px 0;">
+                <h2 id="winner-text" style="color: var(--accent-red); font-size: 2rem; font-family: 'Orbitron';"></h2>
+                <button onclick="location.reload()" style="margin-top: 20px;">ロビーに戻る</button>
             </div>
         </div>
 
-        <!-- サイドパネル（メモ帳） -->
         <div class="side-panel">
             <div class="card-box">
-                <h3 style="color:var(--accent-blue); margin-bottom: 8px;">📝 個人用メモ</h3>
-                <p style="font-size:0.75rem; color:#a4b0be; margin-bottom:10px;">役職推理やCOログの整理用。</p>
-                <textarea id="personal-memo" style="height: 250px;" placeholder="例：&#10;Aさん: 占いCO&#10;Bさん: 投票結果怪しい"></textarea>
+                <h3 style="color: var(--accent-blue); font-size: 1rem; margin-bottom: 8px;">📝 考察メモ</h3>
+                <textarea id="personal-memo" style="height: 200px; resize: none;" placeholder="推理内容や発言ログを記入..."></textarea>
             </div>
         </div>
     </div>
@@ -434,135 +313,195 @@
     const socket = io();
     let myId = null;
     let myRole = null;
+    let currentRoom = null;
     let userPT = parseInt(localStorage.getItem('userPT') || '500');
-    let equippedItem = null;
-    let itemUsedThisGame = false;
 
     socket.on('connect', () => { myId = socket.id; });
 
-    // --- PT更新表示 ---
     function updatePTDisplay() {
         document.getElementById('user-pt').innerText = userPT;
         localStorage.setItem('userPT', userPT);
     }
     updatePTDisplay();
 
-    // --- タイマー同期処理 ---
+    // --- パーティクルアニメーション演出 ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let isNight = false;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    for (let i = 0; i < 40; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 2 + 1,
+            speedY: Math.random() * 0.5 + 0.2,
+            opacity: Math.random()
+        });
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = isNight ? 'rgba(168, 85, 247, ' : 'rgba(0, 240, 255, ';
+        
+        particles.forEach(p => {
+            p.y -= p.speedY;
+            if (p.y < 0) p.y = canvas.height;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = (isNight ? 'rgba(168, 85, 247, ' : 'rgba(0, 240, 255, ') + p.opacity + ')';
+            ctx.fill();
+        });
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // タイマー同期
     socket.on('timerUpdate', ({ timeLeft }) => {
         const min = Math.floor(timeLeft / 60);
         const sec = timeLeft % 60;
-        const formattedSec = sec < 10 ? '0' + sec : sec;
-        document.getElementById('timer-display').innerText = `⏱️ 残り時間: ${min}:${formattedSec}`;
+        document.getElementById('timer-display').innerText = `⏱️ TIME: ${min}:${sec < 10 ? '0' : ''}${sec}`;
     });
 
-    socket.on('timeUp', () => {
-        document.getElementById('timer-display').innerText = "⏱️ 時間切れ！";
-    });
-
-    // --- 画面遷移管理 ---
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
 
-    // --- 部屋参加処理 ---
     function joinRandomRoom() {
         const name = document.getElementById('player-name').value.trim() || 'ゲスト';
-        const avatar = document.getElementById('my-avatar').src;
-        socket.emit('joinRandomRoom', { name, avatar });
+        socket.emit('joinRandomRoom', { name, avatar: document.getElementById('my-avatar').src });
         showScreen('screen-room');
     }
 
     function joinRoom() {
         const name = document.getElementById('player-name').value.trim() || 'ゲスト';
         const roomCode = document.getElementById('room-code').value.trim();
-        const avatar = document.getElementById('my-avatar').src;
-        if (!roomCode) return alert('部屋番号を入力してください');
-
-        socket.emit('joinRoom', { roomCode, name, avatar });
+        if (!roomCode) return alert('部屋IDを入力してください');
+        socket.emit('joinRoom', { roomCode, name, avatar: document.getElementById('my-avatar').src });
         showScreen('screen-room');
         document.getElementById('display-room').innerText = roomCode;
     }
 
-    // --- ショップ＆アイテム処理 ---
-    function buyItem(itemId, cost) {
-        if (userPT < cost) return alert('ポイントが足りません！');
-        userPT -= cost;
-        equippedItem = itemId;
-        updatePTDisplay();
-        alert('アイテムを購入して装備しました！');
-        document.getElementById('equipped-item-name').innerText = getItemName(itemId);
-        document.getElementById('use-item-btn').style.display = 'inline-block';
-    }
-
-    function buyAvatar(seed, cost) {
-        if (userPT < cost) return alert('ポイントが足りません！');
-        userPT -= cost;
-        const newAvatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
-        document.getElementById('my-avatar').src = newAvatarUrl;
-        updatePTDisplay();
-        alert('アバターを変更しました！');
-    }
-
-    function getItemName(id) {
-        if (id === 'crystal') return '🔮 水晶玉';
-        if (id === 'doll') return '🧸 身代わり人形';
-        if (id === 'megaphone') return '📢 説得のメガホン';
-        return 'なし';
-    }
-
-    function useEquippedItem() {
-        if (itemUsedThisGame) return alert('アイテムは1ゲームにつき1度しか使えません！');
-        if (!equippedItem) return;
-
-        if (confirm(`${getItemName(equippedItem)} を使用しますか？`)) {
-            itemUsedThisGame = true;
-            document.getElementById('use-item-btn').disabled = true;
-            document.getElementById('use-item-btn').innerText = '使用済み';
-            socket.emit('useItem', { itemType: equippedItem });
-            alert('アイテムを発動しました！');
-        }
-    }
-
-    // --- ゲーム進行イベント処理 ---
     socket.on('updateRoom', (room) => {
+        currentRoom = room;
         const list = document.getElementById('player-list');
         list.innerHTML = '';
         Object.values(room.players).forEach(p => {
-            const avatarUrl = p.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.name}`;
             list.innerHTML += `
                 <div class="player-card">
                     <div class="player-info">
-                        <img src="${avatarUrl}" class="avatar-img" alt="avatar">
-                        <span>${p.name}</span>
+                        <img src="${p.avatar || ''}" class="avatar-img">
+                        <span style="font-weight:700;">${p.name}</span>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     });
 
     function startGame() {
-        const chks = document.querySelectorAll('.role-chk:checked');
-        const selectedRoles = Array.from(chks).map(c => c.value);
-        const dayTimeLimit = document.getElementById('time-limit').value;
-        socket.emit('startGame', { selectedRoles, dayTimeLimit });
+        socket.emit('startGame', { selectedRoles: ['人狼', '占い師', '騎士（狩人）'], dayTimeLimit: 180 });
     }
 
     socket.on('gameStarted', (room) => {
+        currentRoom = room;
         myRole = room.players[myId].role;
         document.getElementById('my-role').innerText = myRole;
-        itemUsedThisGame = false;
         showScreen('screen-game');
+        renderNightPhase(room);
     });
 
-    // --- 報酬PT受領 ---
-    socket.on('rewardPT', ({ amount, reason }) => {
-        userPT += amount;
-        updatePTDisplay();
-        alert(`【報酬】${reason}により ${amount} PT 獲得しました！`);
+    function renderNightPhase(room) {
+        isNight = true;
+        document.getElementById('phase-title').innerText = "🌙 夜の行動";
+        
+        let desc = "能力者は対象を選択してください。";
+        if (myRole === '人狼') desc = "襲撃相手を選択してください。";
+        else if (myRole === '占い師') desc = "占う相手を選択してください。";
+        else if (myRole === '騎士（狩人）') desc = "護衛相手を選択してください。";
+        document.getElementById('phase-desc').innerText = desc;
+
+        const list = document.getElementById('game-player-list');
+        list.innerHTML = '';
+
+        Object.values(room.players).forEach(p => {
+            if (!p.isAlive) return;
+            let btnHtml = '';
+            if (p.id !== myId && ['人狼', '占い師', '騎士（狩人）'].includes(myRole)) {
+                btnHtml = `<button class="action-btn" onclick="sendNightAction('${p.id}')">選択</button>`;
+            }
+            list.innerHTML += `
+                <div class="player-card">
+                    <div class="player-info">
+                        <img src="${p.avatar || ''}" class="avatar-img">
+                        <span style="font-weight:700;">${p.name}</span>
+                    </div>
+                    ${btnHtml}
+                </div>`;
+        });
+    }
+
+    function sendNightAction(targetId) {
+        socket.emit('nightAction', { targetId });
+        document.getElementById('phase-desc').innerText = "行動を選択しました。待機中...";
+        document.getElementById('game-player-list').innerHTML = '';
+    }
+
+    socket.on('startDay', ({ room, killedIds }) => {
+        isNight = false;
+        currentRoom = room;
+        document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
+        
+        let msg = killedIds && killedIds.length > 0 
+            ? `${killedIds.map(id => room.players[id].name).join(', ')} さんが犠牲になりました。`
+            : "昨夜は誰も死にませんでした。";
+        document.getElementById('phase-desc').innerText = msg + " 追放投票を行ってください。";
+
+        const list = document.getElementById('game-player-list');
+        list.innerHTML = '';
+        const isMyAlive = room.players[myId].isAlive;
+
+        Object.values(room.players).forEach(p => {
+            let btnHtml = '';
+            if (isMyAlive && p.isAlive && p.id !== myId) {
+                btnHtml = `<button class="action-btn" onclick="sendVote('${p.id}')">投票</button>`;
+            }
+            list.innerHTML += `
+                <div class="player-card ${!p.isAlive ? 'dead' : ''}">
+                    <div class="player-info">
+                        <img src="${p.avatar || ''}" class="avatar-img">
+                        <span style="font-weight:700;">${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>
+                    </div>
+                    ${btnHtml}
+                </div>`;
+        });
     });
 
-    // --- 簡易チャット送信 ---
+    function sendVote(targetId) {
+        socket.emit('castVote', { targetId });
+        document.getElementById('phase-desc').innerText = "投票しました。結果を待っています...";
+        document.getElementById('game-player-list').innerHTML = '';
+    }
+
+    socket.on('startNight', ({ room }) => {
+        currentRoom = room;
+        renderNightPhase(room);
+    });
+
+    socket.on('gameOver', ({ winner }) => {
+        isNight = false;
+        showScreen('screen-result');
+        document.getElementById('winner-text').innerText = `${winner} の勝利！`;
+
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+    });
+
     function sendChat() {
         const text = document.getElementById('chat-input').value.trim();
         const type = document.getElementById('chat-type').value;
@@ -571,16 +510,21 @@
         document.getElementById('chat-input').value = '';
     }
 
-    socket.on('chatMessage', ({ sender, text, type }) => {
+    socket.on('chatMessage', ({ sender, text }) => {
         const box = document.getElementById('chat-box');
         box.innerHTML += `<div class="chat-msg"><b>${sender}:</b> ${text}</div>`;
         box.scrollTop = box.scrollHeight;
     });
 
-    // --- ダミー認証関数 ---
-    function login() { alert('ログインしました'); showScreen('screen-lobby'); }
-    function register() { alert('登録が完了しました'); showScreen('screen-lobby'); }
-    function applyPreset(type) { /* 簡易プリセット切替 */ }
+    function buyItem(itemId, cost) {
+        if (userPT < cost) return alert('PT不足です');
+        userPT -= cost;
+        updatePTDisplay();
+        alert('購入完了！');
+    }
+
+    function login() { alert('ログイン完了'); showScreen('screen-lobby'); }
+    function register() { alert('登録完了'); showScreen('screen-lobby'); }
 </script>
 </body>
 </html>
