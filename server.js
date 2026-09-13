@@ -8,7 +8,6 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.static(__dirname));
 
-// データベース代わりのインメモリ保持 (本番用にはMongoDB等と連携可能)
 const usersDB = {};
 const rooms = {};
 
@@ -21,7 +20,7 @@ io.on('connection', (socket) => {
         usersDB[username] = {
             username,
             password,
-            pt: 1000, // 初期ポイント
+            pt: 1000,
             avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`,
             wins: 0,
             losses: 0
@@ -48,7 +47,8 @@ io.on('connection', (socket) => {
                 players: {},
                 phase: 'lobby',
                 timer: null,
-                nightActions: {}
+                nightActions: {},
+                votes: {}
             };
         }
 
@@ -78,7 +78,8 @@ io.on('connection', (socket) => {
                 players: {},
                 phase: 'lobby',
                 timer: null,
-                nightActions: {}
+                nightActions: {},
+                votes: {}
             };
         }
 
@@ -135,7 +136,22 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 💬 5. チャット送信
+    // 🗳️ 5. 昼の投票行動
+    socket.on('castVote', ({ targetId }) => {
+        const roomCode = socket.roomCode;
+        const room = rooms[roomCode];
+        if (!room || room.phase !== 'day') return;
+
+        room.votes[socket.id] = targetId;
+
+        const alivePlayers = Object.values(room.players).filter(p => p.isAlive);
+        if (Object.keys(room.votes).length >= alivePlayers.length) {
+            clearInterval(room.timer);
+            processDayResults(roomCode);
+        }
+    });
+
+    // 💬 6. チャット送信
     socket.on('sendMessage', ({ text, type }) => {
         const roomCode = socket.roomCode;
         const room = rooms[roomCode];
@@ -166,7 +182,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// 夜タイマー
+// 夜フェーズ開始
 function startNightPhase(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
@@ -189,12 +205,13 @@ function startNightPhase(roomCode) {
     }, 1000);
 }
 
-// 朝の集計
+// 朝の集計＆昼フェーズ（タイマー起動）
 function processNightResults(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
 
     room.phase = 'day';
+    room.votes = {};
     const killedIds = [];
 
     const wolfTargets = Object.entries(room.nightActions)
@@ -214,6 +231,49 @@ function processNightResults(roomCode) {
     }
 
     io.to(roomCode).emit('startDay', { room, killedIds });
+
+    // ☀️ 昼タイマーのスタート (60秒間)
+    let timeLeft = 60;
+    io.to(roomCode).emit('timerUpdate', { timeLeft });
+
+    clearInterval(room.timer);
+    room.timer = setInterval(() => {
+        timeLeft--;
+        io.to(roomCode).emit('timerUpdate', { timeLeft });
+
+        if (timeLeft <= 0) {
+            clearInterval(room.timer);
+            processDayResults(roomCode);
+        }
+    }, 1000);
+}
+
+// 昼の集計（最多票プレイヤーの追放）
+function processDayResults(roomCode) {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    const voteCounts = {};
+    Object.values(room.votes).forEach(targetId => {
+        voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+    });
+
+    let maxVotes = 0;
+    let executedId = null;
+
+    Object.entries(voteCounts).forEach(([targetId, count]) => {
+        if (count > maxVotes) {
+            maxVotes = count;
+            executedId = targetId;
+        }
+    });
+
+    if (executedId && room.players[executedId]) {
+        room.players[executedId].isAlive = false;
+    }
+
+    // 次の夜フェーズへ移行
+    startNightPhase(roomCode);
 }
 
 const PORT = process.env.PORT || 3000;
