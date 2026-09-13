@@ -3,198 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ONLINE JINRO - High Quality Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>ONLINE JINRO - Cyberpunk Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --bg-color: #06080e;
-            --panel-bg: rgba(15, 21, 33, 0.88);
-            --panel-border: rgba(255, 255, 255, 0.1);
+            --bg-base: #04060a;
+            --panel-bg: rgba(13, 19, 32, 0.75);
+            --panel-border: rgba(0, 240, 255, 0.2);
+            --accent-cyan: #00f0ff;
             --accent-red: #ff2a5f;
-            --accent-blue: #00f0ff;
             --accent-gold: #ffb703;
             --accent-purple: #a855f7;
+            --accent-green: #10b981;
             --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --glow-red: 0 0 20px rgba(255, 42, 95, 0.5);
-            --glow-blue: 0 0 20px rgba(0, 240, 255, 0.5);
-            --glow-gold: 0 0 20px rgba(255, 183, 3, 0.5);
+            --text-muted: #64748b;
+            --glow-cyan: 0 0 15px rgba(0, 240, 255, 0.4);
+            --glow-red: 0 0 15px rgba(255, 42, 95, 0.5);
+            --glow-gold: 0 0 15px rgba(255, 183, 3, 0.5);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0; padding: 0;
-            font-family: 'Zen Kaku Gothic New', sans-serif;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; user-select: none; }
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-base);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex; justify-content: center;
-            padding: 12px 8px; overflow-x: hidden; position: relative;
+            display: flex;
+            justify-content: center;
+            padding: 16px 10px;
+            overflow-x: hidden;
         }
 
-        #bg-canvas {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -1; pointer-events: none;
-        }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
 
-        .container {
-            width: 100%; max-width: 1150px;
-            display: flex; flex-direction: column; gap: 16px; z-index: 1;
-        }
+        .container { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 16px; z-index: 1; }
 
+        /* 🧭 ナビゲーションバー */
         .navbar {
-            background: var(--panel-bg); backdrop-filter: blur(20px);
-            border: 1px solid var(--panel-border); padding: 12px 18px;
-            border-radius: 18px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            padding: 12px 20px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
 
         .user-info { display: flex; align-items: center; gap: 12px; }
-        .avatar-img {
-            width: 44px; height: 44px; border-radius: 50%;
-            border: 2px solid var(--accent-blue); background: #1e293b; object-fit: cover;
-            box-shadow: var(--glow-blue);
-        }
+        .user-avatar { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--accent-cyan); box-shadow: var(--glow-cyan); }
 
-        .pt-badge {
-            background: linear-gradient(135deg, #ffb703, #fb8500); color: #000;
-            font-weight: 900; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;
-            box-shadow: var(--glow-gold);
-        }
-
+        /* 📱 メインレイアウト */
         .main-layout { display: flex; flex-direction: column; gap: 16px; }
-        @media (min-width: 880px) { .main-layout { flex-direction: row; } }
+        @media (min-width: 900px) { .main-layout { flex-direction: row; } }
 
         .game-panel {
-            flex: 2.5; background: var(--panel-bg); backdrop-filter: blur(20px);
-            padding: 24px; border-radius: 24px; border: 1px solid var(--panel-border);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); position: relative; overflow: hidden;
-        }
-
-        .game-panel::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
-            background: linear-gradient(90deg, var(--accent-red), var(--accent-purple), var(--accent-blue));
+            flex: 2.5;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; gap: 16px;
         }
 
         .side-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; }
         .card-box {
-            background: var(--panel-bg); backdrop-filter: blur(16px);
-            padding: 18px; border-radius: 20px; border: 1px solid var(--panel-border);
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid var(--panel-border);
         }
 
-        h1 {
-            font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900;
-            text-align: center; background: linear-gradient(90deg, #ff2a5f, #00f0ff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: 3px; margin-bottom: 20px;
+        /* 👑 タイトル */
+        .app-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            text-align: center;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--glow-cyan);
         }
 
+        /* 🔘 ボタン＆フォーム */
         input, select, textarea {
-            width: 100%; padding: 12px 14px; margin: 6px 0 12px; border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(8, 12, 20, 0.85);
-            color: #fff; font-size: 0.9rem;
+            width: 100%; padding: 12px 16px; border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(6, 10, 18, 0.85); color: #fff;
+            outline: none; transition: 0.3s;
         }
+        input:focus, textarea:focus { border-color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
 
         button {
-            width: 100%; padding: 12px; margin: 4px 0; border-radius: 12px; border: none;
-            background: linear-gradient(135deg, var(--accent-red), #e11d48);
-            color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer;
-            transition: all 0.2s ease; box-shadow: var(--glow-red);
+            width: 100%; padding: 12px 20px; border-radius: 14px; border: none;
+            background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+            color: #04060a; font-weight: 900; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: var(--glow-cyan);
         }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        button:active { transform: translateY(0); }
 
-        button:active { transform: scale(0.98); }
-        .btn-secondary { background: linear-gradient(135deg, #334155, #1e293b); box-shadow: none; }
-        .btn-gold { background: linear-gradient(135deg, #ffb703, #fb8500); color: #000; box-shadow: var(--glow-gold); }
-        .btn-purple { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); }
-        .action-btn {
-            background: linear-gradient(135deg, var(--accent-blue), #0284c7);
-            color: #000; font-weight: 900; width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0;
-            box-shadow: var(--glow-blue);
-        }
+        .btn-red { background: linear-gradient(135deg, var(--accent-red), #e11d48); color: #fff; box-shadow: var(--glow-red); }
+        .btn-gold { background: linear-gradient(135deg, var(--accent-gold), #ea580c); color: #000; box-shadow: var(--glow-gold); }
+        .btn-purple { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); color: #fff; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; box-shadow: none; }
 
-        .screen { display: none; }
-        .active { display: block; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .screen { display: none; opacity: 0; transition: opacity 0.4s ease; }
+        .screen.active { display: block; opacity: 1; }
 
-        .auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-        .auth-tab-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); box-shadow: none; }
-        .auth-tab-btn.active-tab { background: var(--accent-blue); color: #000; font-weight: 900; }
-
-        .rule-section { margin-bottom: 20px; }
-        .rule-section h3 {
-            color: var(--accent-blue); font-size: 1rem; border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 6px; margin-bottom: 10px;
+        /* ⏱️ タイマー＆フェーズ表示 */
+        .status-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.4); padding: 12px 20px; border-radius: 16px;
+            border-left: 4px solid var(--accent-gold);
         }
-        .rule-step {
-            background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 10px 14px;
-            margin-bottom: 8px; font-size: 0.85rem; line-height: 1.5;
-        }
-        .role-card-rule {
-            background: rgba(30, 41, 59, 0.5); border-left: 3px solid var(--accent-gold);
-            border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 0.85rem;
-        }
-        .role-title { font-weight: bold; color: var(--accent-gold); display: flex; justify-content: space-between; margin-bottom: 4px; }
-
-        .card-container {
-            perspective: 1000px; width: 100%; max-width: 220px; height: 110px;
-            margin: 12px auto; cursor: pointer;
-        }
-        .flipper {
-            width: 100%; height: 100%; transition: 0.6s transform;
-            transform-style: preserve-3d; position: relative;
-        }
-        .card-container.flipped .flipper { transform: rotateY(180deg); }
-        .card-front, .card-back {
-            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
-            border-radius: 14px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; border: 1px solid var(--accent-gold);
-            box-shadow: var(--glow-gold);
-        }
-        .card-front { background: rgba(15, 23, 42, 0.95); }
-        .card-back { background: linear-gradient(135deg, #1e1b4b, #311042); transform: rotateY(180deg); }
-
         .timer-box {
-            background: rgba(10, 15, 26, 0.9); padding: 14px; border-radius: 16px;
-            text-align: center; font-family: 'Orbitron', sans-serif; font-size: 1.5rem;
-            font-weight: 900; color: var(--accent-gold); margin-bottom: 16px;
-            border: 1px solid var(--accent-gold); box-shadow: var(--glow-gold); letter-spacing: 2px;
+            font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 700;
+            color: var(--accent-gold); text-shadow: var(--glow-gold);
         }
 
+        /* 👥 プレイヤーグリッド */
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin: 12px 0; }
         .player-card {
-            background: rgba(26, 36, 52, 0.7); padding: 12px 16px; margin: 8px 0;
-            border-radius: 14px; display: flex; align-items: center; justify-content: space-between;
-            border-left: 4px solid var(--accent-blue); border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 8px; border-radius: 16px; display: flex; flex-direction: column;
+            align-items: center; gap: 8px; text-align: center; transition: 0.3s; position: relative;
         }
-        .dead { opacity: 0.35; filter: grayscale(100%); border-left-color: #64748b !important; }
+        .player-card:hover { border-color: var(--accent-cyan); transform: translateY(-3px); }
+        .player-card.dead { opacity: 0.35; filter: grayscale(100%); border-color: transparent; }
+        .player-card .p-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
+        .player-card .p-name { font-size: 0.85rem; font-weight: 700; color: var(--text-main); word-break: break-all; }
 
+        /* ⚙️ 役職配分カスタマイズ */
+        .role-counter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+        .role-counter-card {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .role-counter-btn {
+            width: 28px; height: 28px; border-radius: 8px; padding: 0; display: flex;
+            justify-content: center; align-items: center; font-size: 1.1rem;
+        }
+
+        /* 💬 リアルタイムチャット */
+        .chat-container { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
         #chat-box {
-            background: rgba(8, 12, 20, 0.95); height: 170px; overflow-y: auto;
-            padding: 12px; border-radius: 14px; margin-top: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem;
+            background: rgba(4, 6, 10, 0.9); height: 180px; overflow-y: auto; padding: 12px;
+            border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.85rem;
+            display: flex; flex-direction: column; gap: 6px;
         }
-        .chat-msg { margin-bottom: 6px; padding: 4px 8px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; }
+        .chat-item { padding: 6px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.03); line-height: 1.4; }
+        .chat-item.system { background: rgba(0, 240, 255, 0.1); border-left: 3px solid var(--accent-cyan); color: var(--accent-cyan); }
+        .chat-item.wolf { background: rgba(255, 42, 95, 0.15); border-left: 3px solid var(--accent-red); color: #ff85a2; }
+        .chat-item.freemason { background: rgba(168, 85, 247, 0.15); border-left: 3px solid var(--accent-purple); color: #d8b4fe; }
 
+        /* 📖 モーダルウィンドウ */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
-            display: none; justify-content: center; align-items: center; z-index: 999; padding: 16px;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s ease; z-index: 9999;
         }
-        .modal-overlay.open { display: flex; animation: fadeIn 0.3s ease-out; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal-content {
-            background: #0f172a; border: 1px solid var(--accent-blue); border-radius: 20px;
-            width: 100%; max-width: 650px; max-height: 85vh; overflow-y: auto; padding: 24px;
-            box-shadow: var(--glow-blue); position: relative;
+            background: rgba(13, 19, 32, 0.95); border: 1px solid var(--accent-cyan);
+            border-radius: 24px; width: 92%; max-width: 650px; max-height: 85vh;
+            overflow-y: auto; padding: 24px; box-shadow: 0 0 50px rgba(0, 240, 255, 0.2);
         }
-        .modal-close {
-            position: absolute; top: 16px; right: 20px; background: none; border: none;
-            color: #fff; font-size: 1.5rem; cursor: pointer; width: auto; padding: 0; box-shadow: none;
+
+        .role-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem;
+            font-weight: 700; margin-right: 6px;
         }
     </style>
     <script src="/socket.io/socket.io.js"></script>
@@ -204,271 +190,253 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="container">
+    <!-- ナビゲーションバー -->
     <div class="navbar">
         <div class="user-info">
-            <img id="my-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest" class="avatar-img" alt="Avatar">
+            <img id="my-avatar" class="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest">
             <div>
-                <div id="nav-username" style="font-weight: 700; font-size: 0.95rem;">ゲスト</div>
-                <span class="pt-badge">🪙 <span id="user-pt">0</span> PT</span>
+                <div id="nav-username" style="font-weight: 700; font-size: 1rem;">ゲストプレイヤー</div>
+                <div style="font-size: 0.8rem; color: var(--accent-gold);">🪙 <span id="user-pt">1000</span> PT</div>
             </div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <button class="btn-purple" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openRuleModal()">📖 ルール</button>
-            <button id="auth-btn" class="btn-secondary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openAuthModal()">🔑 ログイン</button>
-            <button class="btn-gold" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-shop')">🛒</button>
+            <button class="btn-purple" style="width: auto; padding: 8px 14px; font-size: 0.8rem;" onclick="openModal('rule-modal')">📖 12役職図鑑</button>
         </div>
     </div>
 
+    <!-- メインコンテンツ -->
     <div class="main-layout">
         <div class="game-panel">
-            <h1>ONLINE JINRO</h1>
+            <h1 class="app-title">ONLINE JINRO</h1>
 
-            <!-- 1. ロビー画面 -->
+            <!-- 1. ロビースクリーン -->
             <div id="screen-lobby" class="screen active">
-                <h2>🎮 ロビー</h2>
-                <div style="margin: 18px 0;">
-                    <button class="btn-purple" style="padding: 14px;" onclick="joinRandomRoom()">🎲 Quick Join (ランダム対戦)</button>
-                    <p style="text-align: center; font-size: 0.8rem; color: var(--text-sub); margin: 12px 0;">またはプライベートIDで参加</p>
-                    <input type="text" id="room-code" placeholder="部屋ID (例: 7777)">
-                    <button onclick="joinRoom()">部屋を作成 / 入室</button>
-                    <button class="btn-secondary" style="margin-top: 10px;" onclick="openRuleModal()">📖 遊び方・役職図鑑を見る</button>
-                </div>
-            </div>
-
-            <!-- 2. ショップ画面 -->
-            <div id="screen-shop" class="screen">
-                <h2>🛒 ポイントショップ</h2>
-                <p style="text-align:center; color:var(--text-sub); margin-bottom:12px;">所持PTを使ってアイテムを獲得！</p>
-                <div class="player-card">
-                    <span>🔮 占い用水晶玉 (アバター装飾)</span>
-                    <button class="action-btn" onclick="buyItem('crystal', 200)">200 PTで購入</button>
-                </div>
-                <button class="btn-secondary" style="margin-top: 18px;" onclick="showScreen('screen-lobby')">ロビーに戻る</button>
-            </div>
-
-            <!-- 3. 待機部屋 -->
-            <div id="screen-room" class="screen">
-                <h2>ROOM: <span id="display-room" style="color: var(--accent-blue); font-family: 'Orbitron';"></span></h2>
-                <div id="player-list"></div>
-                <button id="start-btn" onclick="startGame()" style="margin-top: 16px; display: none;">ゲームスタート</button>
-                <p id="host-wait-msg" style="text-align: center; font-size: 0.85rem; color: var(--text-sub); margin-top: 12px;">ホストがゲームを開始するのを待っています...</p>
-            </div>
-
-            <!-- 4. ゲーム画面 -->
-            <div id="screen-game" class="screen">
-                <div id="timer-display" class="timer-box">⏱️ TIME: --:--</div>
-
-                <div class="card-container" onclick="this.classList.toggle('flipped')">
-                    <div class="flipper">
-                        <div class="card-front">
-                            <span style="font-size: 0.8rem; color: var(--text-sub);">タップで役職を表示</span>
-                            <span style="font-size: 1.4rem;">🎴</span>
-                        </div>
-                        <div class="card-back">
-                            <span style="font-size: 0.75rem; color: var(--text-sub);">あなたの配役</span>
-                            <strong id="my-role" style="font-size: 1.2rem; color: var(--accent-gold);">市民</strong>
-                        </div>
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                    <button class="btn-gold" onclick="joinRandomRoom()">🎲 QUICK JOIN (ランダム自動マッチ)</button>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="room-code" placeholder="部屋IDを入力 (例: 8888)">
+                        <button style="width: 140px;" onclick="joinRoom()">部屋に入る</button>
                     </div>
                 </div>
+            </div>
 
-                <h3 id="phase-title" style="color: var(--accent-gold); text-align: center; margin-top: 8px;">進行中...</h3>
-                <p id="phase-desc" style="text-align: center; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 12px;"></p>
+            <!-- 2. 待機部屋スクリーン -->
+            <div id="screen-room" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h2>ROOM: <span id="display-room" style="color: var(--accent-cyan); font-family: 'Orbitron';"></span></h2>
+                    <span id="player-count-badge" class="role-badge" style="background: var(--accent-cyan); color: #000;">参加者: 0人</span>
+                </div>
 
-                <div id="game-player-list"></div>
+                <div id="player-grid-room" class="player-grid"></div>
 
-                <div id="chat-box"></div>
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                    <select id="chat-type" style="width: 90px; margin:0;">
-                        <option value="all">全体</option>
-                        <option value="wolf">人狼</option>
-                    </select>
-                    <input type="text" id="chat-input" placeholder="メッセージ..." style="margin:0;">
-                    <button onclick="sendChat()" style="width: 75px; margin:0;">送信</button>
+                <!-- 👑 ホスト専用 12役職配分カスタム -->
+                <div id="host-controls" style="display: none; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); margin-top: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 0.95rem; color: var(--accent-gold);">⚙️ 役職人数のカスタム配分</h3>
+                        <span id="role-total-sum" style="font-size: 0.85rem; color: var(--text-muted);">合計: 0枠</span>
+                    </div>
+
+                    <div id="role-counters" class="role-counter-grid"></div>
+
+                    <button class="btn-gold" style="margin-top: 16px;" onclick="startGame()">ゲームを開始する</button>
+                </div>
+            </div>
+
+            <!-- 3. ゲームメイン画面 -->
+            <div id="screen-game" class="screen">
+                <div class="status-header">
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">あなたの役職</span>
+                        <div id="my-role" style="font-size: 1.2rem; font-weight: 900; color: var(--accent-gold);">市民</div>
+                    </div>
+                    <div id="timer-display" class="timer-box">00:30</div>
+                </div>
+
+                <div style="text-align: center; margin: 10px 0;">
+                    <h3 id="phase-title" style="color: var(--accent-cyan);">フェーズ準備中...</h3>
+                    <p id="phase-desc" style="font-size: 0.8rem; color: var(--text-muted);"></p>
+                </div>
+
+                <!-- ゲーム内アクティブプレイヤー一覧 -->
+                <div id="game-player-grid" class="player-grid"></div>
+
+                <!-- チャット機能 -->
+                <div class="chat-container">
+                    <div id="chat-box"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="chat-type" style="width: 100px; padding: 8px;">
+                            <option value="all">全体</option>
+                            <option value="wolf">人狼</option>
+                            <option value="freemason">共有者</option>
+                        </select>
+                        <input type="text" id="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendChat()">
+                        <button style="width: 80px; padding: 8px;" onclick="sendChat()">送信</button>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- サイドパネル（推理メモ等） -->
         <div class="side-panel">
             <div class="card-box">
-                <h3 style="color: var(--accent-blue); font-size: 1rem; margin-bottom: 8px;">📝 推理メモ</h3>
-                <textarea id="personal-memo" style="height: 200px; resize: none;" placeholder="推理や行動のメモを残せます..."></textarea>
+                <h3 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 8px;">📝 推理ノート</h3>
+                <textarea id="personal-memo" style="height: 200px; resize: none; font-size: 0.85rem;" placeholder="プレイヤーブロックや怪しい発言をメモ..."></textarea>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 📖 ルールモーダル -->
+<!-- 📖 12役職図鑑モーダル -->
 <div id="rule-modal" class="modal-overlay">
     <div class="modal-content">
-        <button class="modal-close" onclick="closeRuleModal()">✕</button>
-        <h2 style="color: var(--accent-blue); margin-bottom: 16px; font-family: 'Orbitron';">📜 RULE BOOK & ROLES</h2>
-        
-        <div class="rule-section">
-            <h3>⏳ ゲームの進行手順</h3>
-            <div class="rule-step"><b>1. 役職決定</b>: 参加者にランダムで役職（市民・人狼・占い師・騎士）が割り振られます。</div>
-            <div class="rule-step"><b>2. 夜フェーズ</b>: 人狼は襲撃先、占い師は占う相手、騎士は守る相手をこっそり選択します。</div>
-            <div class="rule-step"><b>3. 昼フェーズ</b>: 昨夜の犠牲者が発表され、全員でチャット議論および投票を行います。</div>
-        </div>
-
-        <div class="rule-section">
-            <h3>🎴 役職一覧</h3>
-            <div class="role-card-rule">
-                <div class="role-title"><span>👱‍♂️ 市民 (陣営: 市民)</span></div>
-                特殊な能力はありません。議論と推理で人狼を見つけ出します。
-            </div>
-            <div class="role-card-rule" style="border-left-color: var(--accent-red);">
-                <div class="role-title" style="color: var(--accent-red);"><span>🐺 人狼 (陣営: 人狼)</span></div>
-                夜の間に市民グループから1人を指定して襲撃します。
-            </div>
-            <div class="role-card-rule" style="border-left-color: var(--accent-blue);">
-                <div class="role-title" style="color: var(--accent-blue);"><span>🔮 占い師 (陣営: 市民)</span></div>
-                夜の間にプレイヤー1人を選択し、その人が「人狼」かどうかを知ることができます。
-            </div>
-            <div class="role-card-rule" style="border-left-color: #22c55e;">
-                <div class="role-title" style="color: #22c55e;"><span>🛡️ 騎士 (陣営: 市民)</span></div>
-                夜の間に自分以外のプレイヤー1人を守り、人狼の襲撃から防ぎます。
-            </div>
-        </div>
-
-        <button onclick="closeRuleModal()" style="margin-top: 10px;">閉じる</button>
-    </div>
-</div>
-
-<!-- 🔑 ログインモーダル -->
-<div id="auth-modal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 400px;">
-        <button class="modal-close" onclick="closeAuthModal()">✕</button>
-        <h2 style="color: var(--accent-blue); text-align: center; margin-bottom: 16px;">ACCOUNT</h2>
-        
-        <div class="auth-tabs">
-            <button id="tab-login" class="auth-tab-btn active-tab" onclick="switchAuthTab('login')">ログイン</button>
-            <button id="tab-register" class="auth-tab-btn" onclick="switchAuthTab('register')">新規登録</button>
-        </div>
-
-        <input type="text" id="auth-username" placeholder="ユーザー名">
-        <input type="password" id="auth-password" placeholder="パスワード">
-
-        <button id="auth-submit-btn" onclick="submitAuth()">ログイン</button>
+        <h2 style="color: var(--accent-cyan); margin-bottom: 16px; text-align: center;">📖 全12役職図鑑</h2>
+        <div id="role-guide-list" style="display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem;"></div>
+        <button class="btn-secondary" style="margin-top: 20px;" onclick="closeModal('rule-modal')">閉じる</button>
     </div>
 </div>
 
 <script>
     const socket = io();
     let myId = null;
-    let currentUser = null;
-    let authMode = 'login';
     let myRole = '市民';
+    let currentRoom = null;
+
+    // 役職マスターデータ
+    const ROLE_MASTER = [
+        { id: 'citizen', name: '市民', team: '市民', icon: '👱‍♂️', desc: '能力なし。議論と推理で人狼を探す。' },
+        { id: 'wolf', name: '人狼', team: '人狼', icon: '🐺', desc: '夜に1人を襲撃。昼は市民になりすます。' },
+        { id: 'seer', name: '占い師', team: '市民', icon: '🔮', desc: '毎晩1人の正体(人狼か否か)を占う。' },
+        { id: 'medium', name: '霊媒師', team: '市民', icon: '👻', desc: '前日追放された人の正体を霊視する。' },
+        { id: 'guard', name: '騎士', team: '市民', icon: '🛡️', desc: '毎晩1人を人狼の襲撃から護衛する。' },
+        { id: 'hunter', name: 'ハンター', team: '市民', icon: '💥', desc: '死亡時に他プレイヤー1人を道連れにする。' },
+        { id: 'lover', name: '恋人', team: '市民', icon: '💖', desc: 'ペアで生存を目指す。相方が死ぬと後追い死亡。' },
+        { id: 'vampire', name: '吸血鬼', team: '第三', icon: '🦇', desc: '襲撃耐性持ち。最後まで生き残れば単独勝利。' },
+        { id: 'schizoid', name: '多重人格者', team: '人狼', icon: '🎭', desc: '見た目は市民だが人狼陣営として判定される。' },
+        { id: 'psycho', name: 'サイコキラー', team: '人狼', icon: '⚡', desc: '人狼に襲撃された際、返り討ちにして人狼を殺す。' },
+        { id: 'madman', name: '狂人', team: '人狼', icon: '🤪', desc: '能力はないが人狼陣営の勝利をサポート。' },
+        { id: 'freemason', name: '共有者', team: '市民', icon: '🤝', desc: '互いを認識し、夜に専用チャットができる。' }
+    ];
+
+    const roleCounts = { citizen: 1, wolf: 1, seer: 1, medium: 0, guard: 1, hunter: 0, lover: 0, vampire: 0, schizoid: 0, psycho: 0, madman: 0, freemason: 0 };
 
     socket.on('connect', () => { myId = socket.id; });
 
-    // 背景キャンバス設定
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+    // 🎨 キャンバスパーティクル背景アニメーション
+    (function initCanvas() {
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
 
-    for(let i=0; i<40; i++) {
-        particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, dX: (Math.random()-0.5)*0.5, dY: (Math.random()-0.5)*0.5 });
-    }
-    function drawParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'rgba(0, 240, 255, 0.3)';
-        particles.forEach(p => {
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-            p.x += p.dX; p.y += p.dY;
-            if(p.x<0 || p.x>canvas.width) p.dX *= -1;
-            if(p.y<0 || p.y>canvas.height) p.dY *= -1;
-        });
-        requestAnimationFrame(drawParticles);
-    }
-    drawParticles();
+        const particles = Array.from({ length: 45 }, () => ({
+            x: Math.random() * width, y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
+            size: Math.random() * 2 + 1
+        }));
 
-    // タイマー受領
-    socket.on('timerUpdate', ({ timeLeft }) => {
-        const min = Math.floor(timeLeft / 60);
-        const sec = timeLeft % 60;
-        document.getElementById('timer-display').innerText = `⏱️ TIME: ${min}:${sec < 10 ? '0' : ''}${sec}`;
-    });
+        function render() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.3)';
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
 
-    function openRuleModal() { document.getElementById('rule-modal').classList.add('open'); }
-    function closeRuleModal() { document.getElementById('rule-modal').classList.remove('open'); }
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > width) p.vx *= -1;
+                if (p.y < 0 || p.y > height) p.vy *= -1;
 
-    function openAuthModal() { document.getElementById('auth-modal').classList.add('open'); }
-    function closeAuthModal() { document.getElementById('auth-modal').classList.remove('open'); }
-    function switchAuthTab(mode) {
-        authMode = mode;
-        document.getElementById('tab-login').classList.toggle('active-tab', mode === 'login');
-        document.getElementById('tab-register').classList.toggle('active-tab', mode === 'register');
-        document.getElementById('auth-submit-btn').innerText = mode === 'login' ? 'ログイン' : 'アカウント作成';
-    }
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
 
-    function submitAuth() {
-        const username = document.getElementById('auth-username').value.trim();
-        const password = document.getElementById('auth-password').value.trim();
-        if (!username || !password) return alert('ユーザー名とパスワードを入力してください');
-
-        if (authMode === 'login') socket.emit('loginUser', { username, password });
-        else socket.emit('registerUser', { username, password });
-    }
-
-    socket.on('authResponse', ({ success, message, user }) => {
-        alert(message);
-        if (success) {
-            currentUser = user;
-            document.getElementById('nav-username').innerText = user.username;
-            document.getElementById('user-pt').innerText = user.pt;
-            document.getElementById('my-avatar').src = user.avatar;
-            document.getElementById('auth-btn').style.display = 'none';
-            closeAuthModal();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(render);
         }
-    });
+        render();
+        window.onresize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; };
+    })();
 
+    // 画面切り替え & モーダル
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-    function joinRandomRoom() {
-        socket.emit('joinRandomRoom', { user: currentUser });
-        showScreen('screen-room');
+    // 図鑑モーダルの動的生成
+    (function renderRoleGuide() {
+        const container = document.getElementById('role-guide-list');
+        container.innerHTML = ROLE_MASTER.map(r => `
+            <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 12px; border-left: 3px solid var(--accent-cyan);">
+                <div style="font-weight: 700; color: var(--accent-gold); font-size: 0.95rem;">${r.icon} ${r.name}</div>
+                <div style="color: var(--text-muted); margin-top: 2px;">${r.desc}</div>
+            </div>
+        `).join('');
+    })();
+
+    // 役職カウンター表示・変更
+    function renderRoleCounters() {
+        const container = document.getElementById('role-counters');
+        let total = 0;
+        container.innerHTML = ROLE_MASTER.map(r => {
+            const count = roleCounts[r.id] || 0;
+            total += count;
+            return `
+                <div class="role-counter-card">
+                    <span style="font-size:0.85rem;">${r.icon} ${r.name}</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button class="role-counter-btn btn-secondary" onclick="updateRoleCount('${r.id}', -1)">-</button>
+                        <span style="font-weight:700; width:20px; text-align:center;">${count}</span>
+                        <button class="role-counter-btn btn-secondary" onclick="updateRoleCount('${r.id}', 1)">+</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.getElementById('role-total-sum').innerText = `設定合計: ${total}枠`;
     }
+    function updateRoleCount(roleId, delta) {
+        roleCounts[roleId] = Math.max(0, (roleCounts[roleId] || 0) + delta);
+        renderRoleCounters();
+    }
+    renderRoleCounters();
 
+    // Socket イベント
+    function joinRandomRoom() { socket.emit('joinRandomRoom', { user: null }); showScreen('screen-room'); }
     function joinRoom() {
         const roomCode = document.getElementById('room-code').value.trim();
         if (!roomCode) return alert('部屋IDを入力してください');
-        socket.emit('joinRoom', { roomCode, user: currentUser });
+        socket.emit('joinRoom', { roomCode, user: null });
         showScreen('screen-room');
         document.getElementById('display-room').innerText = roomCode;
     }
 
     socket.on('updateRoom', (room) => {
-        const list = document.getElementById('player-list');
-        list.innerHTML = '';
-        
-        Object.values(room.players).forEach(p => {
-            const isHost = p.id === room.hostId;
-            list.innerHTML += `
-                <div class="player-card">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%;">
-                        <span style="font-weight:700;">${p.name} ${isHost ? '👑 (ホスト)' : ''}</span>
-                    </div>
-                </div>`;
-        });
+        currentRoom = room;
+        const grid = document.getElementById('player-grid-room');
+        const players = Object.values(room.players);
+        document.getElementById('player-count-badge').innerText = `参加者: ${players.length}人`;
 
-        const startBtn = document.getElementById('start-btn');
-        const waitMsg = document.getElementById('host-wait-msg');
-        if (myId === room.hostId) {
-            startBtn.style.display = 'block';
-            waitMsg.style.display = 'none';
-        } else {
-            startBtn.style.display = 'none';
-            waitMsg.style.display = 'block';
-        }
+        grid.innerHTML = players.map(p => `
+            <div class="player-card">
+                <img class="p-avatar" src="${p.avatar}">
+                <div class="p-name">${p.name} ${p.id === room.hostId ? '👑' : ''}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('host-controls').style.display = (myId === room.hostId) ? 'block' : 'none';
     });
 
-    function startGame() { socket.emit('startGame'); }
+    function startGame() { socket.emit('startGame', { customRoles: roleCounts }); }
 
     socket.on('gameStarted', (room) => {
         myRole = room.players[myId].role;
@@ -476,126 +444,89 @@
         showScreen('screen-game');
     });
 
-    socket.on('startNight', ({ room }) => {
-        renderNightPhase(room);
+    socket.on('timerUpdate', ({ timeLeft }) => {
+        const min = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const sec = (timeLeft % 60).toString().padStart(2, '0');
+        document.getElementById('timer-display').innerText = `${min}:${sec}`;
     });
 
-    function renderNightPhase(room) {
+    socket.on('startNight', ({ room }) => {
         document.getElementById('phase-title').innerText = "🌙 夜の行動";
-        
-        let desc = "能力者が行動を行っています。しばらくお待ちください…";
-        if (myRole === '人狼') desc = "襲撃相手を選択してください。";
-        else if (myRole === '占い師') desc = "占う相手を選択してください。";
-        else if (myRole === '騎士') desc = "護衛相手を選択してください。";
-        
-        document.getElementById('phase-desc').innerText = desc;
+        document.getElementById('phase-desc').innerText = "能力者は対象を選択してください。";
 
-        const list = document.getElementById('game-player-list');
-        list.innerHTML = '';
-
-        Object.values(room.players).forEach(p => {
-            if (!p.isAlive) return;
-            let btnHtml = '';
+        const grid = document.getElementById('game-player-grid');
+        grid.innerHTML = Object.values(room.players).map(p => {
+            if (!p.isAlive) return '';
+            let actionBtn = '';
             if (p.id !== myId && ['人狼', '占い師', '騎士'].includes(myRole)) {
-                btnHtml = `<button class="action-btn" onclick="sendNightAction('${p.id}')">選択</button>`;
+                actionBtn = `<button style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="sendNightAction('${p.id}')">対象選択</button>`;
             }
-            list.innerHTML += `
+            return `
                 <div class="player-card">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%;">
-                        <span style="font-weight:700;">${p.name}</span>
-                    </div>
-                    ${btnHtml}
-                </div>`;
-        });
-    }
+                    <img class="p-avatar" src="${p.avatar}">
+                    <div class="p-name">${p.name}</div>
+                    ${actionBtn}
+                </div>
+            `;
+        }).join('');
+    });
 
     function sendNightAction(targetId) {
         socket.emit('nightAction', { targetId });
-        document.getElementById('phase-desc').innerText = "行動を送信しました。夜が終わるまで待機してください…";
-        document.getElementById('game-player-list').innerHTML = '';
+        document.getElementById('phase-desc').innerText = "行動を送信しました。選択完了を待っています…";
     }
 
-    socket.on('startDay', ({ room, killedIds }) => {
+    socket.on('startDay', ({ room }) => {
         document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
-        
-        let msg = killedIds && killedIds.length > 0 
-            ? `${killedIds.map(id => room.players[id].name).join(', ')} さんが犠牲になりました。追放したい人物に投票してください。`
-            : "昨夜は誰も死にませんでした。追放したい人物に投票してください。";
-        document.getElementById('phase-desc').innerText = msg;
+        document.getElementById('phase-desc').innerText = "追放したいプレイヤーを選択し投票してください。";
 
-        const list = document.getElementById('game-player-list');
-        list.innerHTML = '';
-
+        const grid = document.getElementById('game-player-grid');
         const isMeAlive = room.players[myId]?.isAlive;
 
-        if (isMeAlive) {
-            list.innerHTML += `
-                <div style="margin-bottom: 12px; text-align: center;">
-                    <button class="btn-secondary" style="width: 100%; border: 1px dashed var(--accent-blue);" onclick="castVote('skip')">
-                        🚫 処刑をスキップ（投票を見送る）
-                    </button>
-                </div>`;
-        }
-
-        Object.values(room.players).forEach(p => {
+        grid.innerHTML = Object.values(room.players).map(p => {
             let voteBtn = '';
             if (isMeAlive && p.isAlive && p.id !== myId) {
-                voteBtn = `<button class="action-btn" style="background:linear-gradient(135deg, var(--accent-red), #e11d48);" onclick="castVote('${p.id}')">投票</button>`;
+                voteBtn = `<button class="btn-red" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="castVote('${p.id}')">投票</button>`;
             }
-            list.innerHTML += `
+            return `
                 <div class="player-card ${!p.isAlive ? 'dead' : ''}">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%;">
-                        <span style="font-weight:700;">${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>
-                    </div>
+                    <img class="p-avatar" src="${p.avatar}">
+                    <div class="p-name">${p.name} ${!p.isAlive ? '💀' : ''}</div>
                     ${voteBtn}
-                </div>`;
-        });
+                </div>
+            `;
+        }).join('');
     });
 
     function castVote(targetId) {
         socket.emit('castVote', { targetId });
-        document.getElementById('phase-desc').innerText = "投票を受け付けました。他のプレイヤーの投票完了または制限時間を待っています…";
+        document.getElementById('phase-desc').innerText = "投票完了。集計結果を待っています…";
+    }
+
+    socket.on('chatMessage', ({ sender, text, type }) => {
+        const box = document.getElementById('chat-box');
+        const item = document.createElement('div');
+        item.className = `chat-item ${type || ''}`;
+        item.innerHTML = `<b>${sender}:</b> ${text}`;
+        box.appendChild(item);
+        box.scrollTop = box.scrollHeight;
+    });
+
+    function sendChat() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        const type = document.getElementById('chat-type').value;
+        if (!text) return;
+        socket.emit('sendMessage', { text, type });
+        input.value = '';
     }
 
     socket.on('gameOver', ({ winner, message }) => {
         document.getElementById('phase-title').innerText = "🎉 GAME OVER";
         document.getElementById('phase-desc').innerText = message;
-        document.getElementById('timer-display').innerText = "⏱️ TIME: 0:00";
-        document.getElementById('game-player-list').innerHTML = '';
-
-        if (typeof confetti === 'function') {
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        }
-
-        setTimeout(() => {
-            alert(`【決着】${winner}の勝ち！\n${message}`);
-            showScreen('screen-lobby');
-        }, 3000);
+        if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+        setTimeout(() => { alert(`【勝者: ${winner}】\n${message}`); showScreen('screen-lobby'); }, 4000);
     });
-
-    function sendChat() {
-        const text = document.getElementById('chat-input').value.trim();
-        const type = document.getElementById('chat-type').value;
-        if (!text) return;
-        socket.emit('sendMessage', { text, type });
-        document.getElementById('chat-input').value = '';
-    }
-
-    socket.on('chatMessage', ({ sender, text }) => {
-        const box = document.getElementById('chat-box');
-        box.innerHTML += `<div class="chat-msg"><b>${sender}:</b> ${text}</div>`;
-        box.scrollTop = box.scrollHeight;
-    });
-
-    function buyItem(item, cost) {
-        if (!currentUser) return alert('アイテムを購入するにはログインしてください');
-        if (currentUser.pt < cost) return alert('PTが不足しています');
-        currentUser.pt -= cost;
-        document.getElementById('user-pt').innerText = currentUser.pt;
-        alert('購入が完了しました！');
-    }
 </script>
 </body>
 </html>
