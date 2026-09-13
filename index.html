@@ -1,4 +1,4 @@
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -123,12 +123,25 @@
         .active { display: block; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 認証モーダル / コンテナ */
         .auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
         .auth-tab-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); box-shadow: none; }
         .auth-tab-btn.active-tab { background: var(--accent-blue); color: #000; font-weight: 900; }
 
-        /* 3Dカード */
+        .rule-section { margin-bottom: 20px; }
+        .rule-section h3 {
+            color: var(--accent-blue); font-size: 1rem; border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 6px; margin-bottom: 10px;
+        }
+        .rule-step {
+            background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 10px 14px;
+            margin-bottom: 8px; font-size: 0.85rem; line-height: 1.5;
+        }
+        .role-card-rule {
+            background: rgba(30, 41, 59, 0.5); border-left: 3px solid var(--accent-gold);
+            border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 0.85rem;
+        }
+        .role-title { font-weight: bold; color: var(--accent-gold); display: flex; justify-content: space-between; margin-bottom: 4px; }
+
         .card-container {
             perspective: 1000px; width: 100%; max-width: 220px; height: 110px;
             margin: 12px auto; cursor: pointer;
@@ -168,7 +181,6 @@
         }
         .chat-msg { margin-bottom: 6px; padding: 4px 8px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; }
 
-        /* モーダル */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
@@ -192,7 +204,6 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="container">
-    <!-- ナビゲーションバー -->
     <div class="navbar">
         <div class="user-info">
             <img id="my-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest" class="avatar-img" alt="Avatar">
@@ -202,8 +213,9 @@
             </div>
         </div>
         <div style="display: flex; gap: 8px;">
+            <button class="btn-purple" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openRuleModal()">📖 ルール</button>
             <button id="auth-btn" class="btn-secondary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openAuthModal()">🔑 ログイン</button>
-            <button class="btn-gold" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-shop')">🛒 ショップ</button>
+            <button class="btn-gold" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="showScreen('screen-shop')">🛒</button>
         </div>
     </div>
 
@@ -219,13 +231,14 @@
                     <p style="text-align: center; font-size: 0.8rem; color: var(--text-sub); margin: 12px 0;">またはプライベートIDで参加</p>
                     <input type="text" id="room-code" placeholder="部屋ID (例: 7777)">
                     <button onclick="joinRoom()">部屋を作成 / 入室</button>
+                    <button class="btn-secondary" style="margin-top: 10px;" onclick="openRuleModal()">📖 遊び方・役職図鑑を見る</button>
                 </div>
             </div>
 
             <!-- 2. ショップ画面 -->
             <div id="screen-shop" class="screen">
                 <h2>🛒 ポイントショップ</h2>
-                <p style="text-align:center; color:var(--text-sub); margin-bottom:12px;">所持PTを使ってアバターや称号を獲得！</p>
+                <p style="text-align:center; color:var(--text-sub); margin-bottom:12px;">所持PTを使ってアイテムを獲得！</p>
                 <div class="player-card">
                     <span>🔮 占い用水晶玉 (アバター装飾)</span>
                     <button class="action-btn" onclick="buyItem('crystal', 200)">200 PTで購入</button>
@@ -283,7 +296,44 @@
     </div>
 </div>
 
-<!-- 🔑 ログイン / 新規登録モーダル -->
+<!-- 📖 ルールモーダル -->
+<div id="rule-modal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeRuleModal()">✕</button>
+        <h2 style="color: var(--accent-blue); margin-bottom: 16px; font-family: 'Orbitron';">📜 RULE BOOK & ROLES</h2>
+        
+        <div class="rule-section">
+            <h3>⏳ ゲームの進行手順</h3>
+            <div class="rule-step"><b>1. 役職決定</b>: 参加者にランダムで役職（市民・人狼・占い師・騎士）が割り振られます。</div>
+            <div class="rule-step"><b>2. 夜フェーズ</b>: 人狼は襲撃先、占い師は占う相手、騎士は守る相手をこっそり選択します。</div>
+            <div class="rule-step"><b>3. 昼フェーズ</b>: 昨夜の犠牲者が発表され、全員でチャット討論を行って投票を行います。</div>
+        </div>
+
+        <div class="rule-section">
+            <h3>🎴 役職一覧</h3>
+            <div class="role-card-rule">
+                <div class="role-title"><span>👱‍♂️ 市民 (陣営: 市民)</span></div>
+                特殊な能力はありません。チャットでの議論と推理で人狼を見つけ出します。
+            </div>
+            <div class="role-card-rule" style="border-left-color: var(--accent-red);">
+                <div class="role-title" style="color: var(--accent-red);"><span>🐺 人狼 (陣営: 人狼)</span></div>
+                夜の間に市民グループから1人を指定して襲撃します。仲間同士で専用チャットが可能です。
+            </div>
+            <div class="role-card-rule" style="border-left-color: var(--accent-blue);">
+                <div class="role-title" style="color: var(--accent-blue);"><span>🔮 占い師 (陣営: 市民)</span></div>
+                夜の間にプレイヤー1人を選択し、その人が「人狼」か「人狼でない」かを知ることができます。
+            </div>
+            <div class="role-card-rule" style="border-left-color: #22c55e;">
+                <div class="role-title" style="color: #22c55e;"><span>🛡️ 騎士 (陣営: 市民)</span></div>
+                夜の間に自分以外のプレイヤー1人を守ります。守られたプレイヤーは人狼の襲撃から生き残ります。
+            </div>
+        </div>
+
+        <button onclick="closeRuleModal()" style="margin-top: 10px;">閉じる</button>
+    </div>
+</div>
+
+<!-- 🔑 ログインモーダル -->
 <div id="auth-modal" class="modal-overlay">
     <div class="modal-content" style="max-width: 400px;">
         <button class="modal-close" onclick="closeAuthModal()">✕</button>
@@ -310,7 +360,7 @@
 
     socket.on('connect', () => { myId = socket.id; });
 
-    // ✨ 動的背景パーティクル描画
+    // ✨ 動的背景
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -333,14 +383,16 @@
     }
     drawParticles();
 
-    // ⏱️ タイマー受領
+    // ⏱️ タイマー受領（夜・昼ともに共通対応）
     socket.on('timerUpdate', ({ timeLeft }) => {
         const min = Math.floor(timeLeft / 60);
         const sec = timeLeft % 60;
         document.getElementById('timer-display').innerText = `⏱️ TIME: ${min}:${sec < 10 ? '0' : ''}${sec}`;
     });
 
-    // 🔑 ログイン管理
+    function openRuleModal() { document.getElementById('rule-modal').classList.add('open'); }
+    function closeRuleModal() { document.getElementById('rule-modal').classList.remove('open'); }
+
     function openAuthModal() { document.getElementById('auth-modal').classList.add('open'); }
     function closeAuthModal() { document.getElementById('auth-modal').classList.remove('open'); }
     function switchAuthTab(mode) {
@@ -412,7 +464,6 @@
         renderNightPhase(room);
     });
 
-    // 🌙 夜描画 (市民向けの案内も明記)
     function renderNightPhase(room) {
         document.getElementById('phase-title').innerText = "🌙 夜の行動";
         
@@ -449,30 +500,41 @@
         document.getElementById('game-player-list').innerHTML = '';
     }
 
-    // ☀️ 昼描画
+    // ☀️ 昼の議論・投票フェーズUI対応
     socket.on('startDay', ({ room, killedIds }) => {
         document.getElementById('phase-title').innerText = "☀️ 昼の議論＆投票";
         
         let msg = killedIds && killedIds.length > 0 
-            ? `${killedIds.map(id => room.players[id].name).join(', ')} さんが犠牲になりました。`
-            : "昨夜は誰も死にませんでした。";
+            ? `${killedIds.map(id => room.players[id].name).join(', ')} さんが犠牲になりました。追放したい人物に投票してください。`
+            : "昨夜は誰も死にませんでした。追放したい人物に投票してください。";
         document.getElementById('phase-desc').innerText = msg;
 
         const list = document.getElementById('game-player-list');
         list.innerHTML = '';
 
+        const isMeAlive = room.players[myId]?.isAlive;
+
         Object.values(room.players).forEach(p => {
+            let voteBtn = '';
+            if (isMeAlive && p.isAlive && p.id !== myId) {
+                voteBtn = `<button class="action-btn" style="background:linear-gradient(135deg, var(--accent-red), #e11d48);" onclick="castVote('${p.id}')">投票</button>`;
+            }
             list.innerHTML += `
                 <div class="player-card ${!p.isAlive ? 'dead' : ''}">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%;">
                         <span style="font-weight:700;">${p.name} ${!p.isAlive ? '(死亡)' : ''}</span>
                     </div>
+                    ${voteBtn}
                 </div>`;
         });
     });
 
-    // 💬 チャット処理
+    function castVote(targetId) {
+        socket.emit('castVote', { targetId });
+        document.getElementById('phase-desc').innerText = "投票を受け付けました。他のプレイヤーの投票完了または制限時間を待っています…";
+    }
+
     function sendChat() {
         const text = document.getElementById('chat-input').value.trim();
         const type = document.getElementById('chat-type').value;
